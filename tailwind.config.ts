@@ -1,0 +1,97 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: 'class',
+  content: [
+    './src/app/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/features/**/*.{ts,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#CC0000',
+        'primary-dark': '#990000',
+        'primary-light': '#FF3333',
+        secondary: '#1a1a1a',
+        'secondary-light': '#333333',
+        accent: '#FF6600',
+        background: '#FFFFFF',
+        'background-alt': '#F5F5F5',
+        border: '#E0E0E0',
+        'text-primary': '#1a1a1a',
+        'text-secondary': '#555555',
+        'text-muted': '#999999',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        info: '#3B82F6',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        xs: '12px',
+        sm: '14px',
+        base: '16px',
+        lg: '18px',
+        xl: '20px',
+        '2xl': '24px',
+        '3xl': '30px',
+        '4xl': '36px',
+        '5xl': '48px',
+      },
+      fontWeight: {
+        light: '300',
+        normal: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+        extrabold: '800',
+      },
+      lineHeight: {
+        tight: '1.25',
+        snug: '1.375',
+        normal: '1.5',
+        relaxed: '1.625',
+        loose: '2',
+      },
+      spacing: {
+        4.5: '18px',
+        13: '52px',
+        15: '60px',
+        18: '72px',
+        22: '88px',
+        26: '104px',
+        30: '120px',
+      },
+      screens: {
+        xs: '375px',
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1536px',
+      },
+      borderRadius: {
+        none: '0',
+        sm: '4px',
+        DEFAULT: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        full: '9999px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(0,0,0,0.05)',
+        DEFAULT: '0 2px 8px rgba(0,0,0,0.08)',
+        md: '0 4px 16px rgba(0,0,0,0.10)',
+        lg: '0 8px 32px rgba(0,0,0,0.12)',
+        card: '0 2px 12px rgba(0,0,0,0.08)',
+      },
+    },
+  },
+};
+
+export default config;

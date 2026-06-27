@@ -1,0 +1,110 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: 'class',
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './features/**/*.{ts,tsx}',
+    './src/app/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/features/**/*.{ts,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          foreground: 'var(--color-primary-foreground)',
+          light: 'var(--color-primary-light)',
+          dark: 'var(--color-primary-dark)',
+          muted: 'var(--color-primary-muted)',
+        },
+        secondary: {
+          DEFAULT: 'var(--color-secondary)',
+          foreground: 'var(--color-secondary-foreground)',
+          light: 'var(--color-secondary-light)',
+          dark: 'var(--color-secondary-dark)',
+        },
+        background: {
+          DEFAULT: 'var(--color-background)',
+          surface: 'var(--color-surface)',
+          alt: 'var(--color-surface-alt)',
+        },
+        border: 'var(--color-border)',
+        foreground: 'var(--color-foreground)',
+        muted: 'var(--color-muted)',
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        error: 'var(--color-error)',
+        info: 'var(--color-info)',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        xs: ['12px', { lineHeight: '1.25' }],
+        sm: ['14px', { lineHeight: '1.375' }],
+        base: ['16px', { lineHeight: '1.5' }],
+        lg: ['18px', { lineHeight: '1.625' }],
+        xl: ['20px', { lineHeight: '1.5' }],
+        '2xl': ['24px', { lineHeight: '1.5' }],
+        '3xl': ['30px', { lineHeight: '1.375' }],
+        '4xl': ['36px', { lineHeight: '1.25' }],
+        '5xl': ['48px', { lineHeight: '1.25' }],
+      },
+      fontWeight: {
+        light: '300',
+        normal: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+        extrabold: '800',
+      },
+      lineHeight: {
+        tight: '1.25',
+        snug: '1.375',
+        normal: '1.5',
+        relaxed: '1.625',
+        loose: '2',
+      },
+      spacing: {
+        '4.5': '18px',
+        '13': '52px',
+        '15': '60px',
+        '18': '72px',
+        '22': '88px',
+        '26': '104px',
+        '30': '120px',
+      },
+      borderRadius: {
+        none: '0',
+        sm: '4px',
+        DEFAULT: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        full: '9999px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(0,0,0,0.05)',
+        DEFAULT: '0 2px 8px rgba(0,0,0,0.08)',
+        md: '0 4px 16px rgba(0,0,0,0.10)',
+        lg: '0 8px 32px rgba(0,0,0,0.12)',
+        card: '0 2px 12px rgba(0,0,0,0.08)',
+      },
+    },
+    screens: {
+      xs: '375px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+    },
+  },
+  plugins: [],
+};
+
+export default config;

@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+:root {
+  --color-primary: #2ecc71;
+  --color-primary-foreground: #ffffff;
+  --color-primary-light: #6be89f;
+  --color-primary-dark: #25a85d;
+  --color-primary-muted: #bdeccb;
+
+  --color-secondary: #1e293b;
+  --color-secondary-foreground: #ffffff;
+  --color-secondary-light: #32435b;
+  --color-secondary-dark: #152036;
+
+  --color-background: #f7fbf7;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4faf3;
+  --color-border: #d8ead8;
+  --color-foreground: #111827;
+  --color-muted: #6b7280;
+
+  --color-success: #2ecc71;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  --shadow-base: 0 20px 60px rgba(46, 204, 113, 0.14);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+.theme-light {
+  --color-background: #f7fbf7;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4faf3;
+  --color-foreground: #111827;
+  --color-muted: #6b7280;
+}
+
+.theme-dark {
+  --color-background: #101827;
+  --color-surface: #17243c;
+  --color-surface-alt: #1e314f;
+  --color-foreground: #f8fafc;
+  --color-muted: #94a3b8;
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

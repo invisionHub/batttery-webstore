@@ -1,16 +1,13 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { mockProducts, mockCategories, type Product } from '@/lib/mock-data'; // Assuming Product type is exported from mock-data
-import ProductCard from '@/components/product/ProductCard'; // Renamed alias to reflect actual component
-import ProductGridDisplay from '@/components/product/ProductGridDisplay'; // New component for displaying a grid of products
-import FilterSidebar, { type FilterState } from '@/components/product/FilterSidebar';
-import SearchBar from '@/components/ui/SearchBar';
 import Link from 'next/link';
+import { mockProducts, mockCategories } from '@/lib/mock-data';
+import FilterSidebar, { type FilterState } from '@/components/product/FilterSidebar';
+import SortSelect from '@/components/ui/SortSelect';
+import Pagination from '@/components/ui/Pagination';
+import ProductCard from '@/components/product/ProductCard';
 
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
 const colors = {
   primary: '#22C55E',
   secondary: '#0D1B2A',
@@ -20,18 +17,13 @@ const colors = {
   textMuted: '#6B7280',
 };
 
-const SORT_OPTIONS = [
-  { label: 'Most Popular', value: 'popular' },
-  { label: 'Newest First', value: 'newest' },
-  { label: 'Price: Low to High', value: 'price-asc' },
-  { label: 'Price: High to Low', value: 'price-desc' },
-  { label: 'Top Rated', value: 'rating' },
-];
+const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('popular');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -39,14 +31,17 @@ export default function ProductsPage() {
     priceMin: 0,
     priceMax: 500000,
     rating: null,
-    badge: [],
+    inStockOnly: false,
   });
 
-  // Filter + sort products
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
+
   const filteredProducts = useMemo(() => {
     let result = [...mockProducts];
 
-    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -57,30 +52,17 @@ export default function ProductsPage() {
       );
     }
 
-    // Category filter
-    if (filters.categories.length > 0) {
+    if (filters.categories.length > 0)
       result = result.filter((p) => filters.categories.includes(p.category));
-    }
 
-    // Brand filter
-    if (filters.brands.length > 0) {
-      result = result.filter((p) => filters.brands.includes(p.brand));
-    }
+    if (filters.brands.length > 0) result = result.filter((p) => filters.brands.includes(p.brand));
 
-    // Price filter
     result = result.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
 
-    // Rating filter
-    if (filters.rating !== null) {
-      result = result.filter((p) => p.rating >= filters.rating!);
-    }
+    if (filters.rating !== null) result = result.filter((p) => p.rating >= filters.rating!);
 
-    // Badge filter
-    if (filters.badge.length > 0) {
-      result = result.filter((p) => p.badge && filters.badge.includes(p.badge));
-    }
+    if (filters.inStockOnly) result = result.filter((p) => p.inStock);
 
-    // Sort
     switch (sort) {
       case 'price-asc':
         result.sort((a, b) => a.price - b.price);
@@ -89,28 +71,49 @@ export default function ProductsPage() {
         result.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        result.sort((a, b) => b.rating - a.rating); // Fixed: Sort by rating in descending order
+        result.sort((a, b) => b.rating - a.rating);
         break;
       case 'newest':
         result.reverse();
+        break;
+      case 'name-asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
         break;
     }
 
     return result;
   }, [search, filters, sort]);
 
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
   const activeFilterCount =
     filters.categories.length +
     filters.brands.length +
-    filters.badge.length +
-    (filters.rating ? 1 : 0);
+    (filters.rating ? 1 : 0) +
+    (filters.inStockOnly ? 1 : 0);
 
   return (
     <div style={{ backgroundColor: colors.bgLight, minHeight: '100vh' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        style={{ paddingTop: '24px', paddingBottom: '48px' }}
+      >
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs mb-6" style={{ color: colors.textMuted }}>
-          <Link href="/" style={{ color: colors.textMuted }}>
+        <nav
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            color: colors.textMuted,
+            marginBottom: '20px',
+          }}
+        >
+          <Link href="/" style={{ color: colors.textMuted, textDecoration: 'none' }}>
             Home
           </Link>
           <span>/</span>
@@ -118,46 +121,181 @@ export default function ProductsPage() {
         </nav>
 
         {/* Page header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          style={{ marginBottom: '20px' }}
+        >
           <div>
-            <h1 className="text-2xl font-black" style={{ color: colors.secondary }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 900, color: colors.secondary, margin: 0 }}>
               All Products
             </h1>
-            <p className="text-sm mt-1" style={{ color: colors.textMuted }}>
+            <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0 0' }}>
               {filteredProducts.length} products found
             </p>
           </div>
 
-          {/* Search bar — desktop */}
-          <div className="hidden sm:block w-full max-w-sm">
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              onSearch={setSearch}
-              placeholder="Search products..."
-            />
-          </div>
-        </div>
-
-        {/* Search bar — mobile */}
-        <div className="sm:hidden mb-4">
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            onSearch={setSearch}
-            placeholder="Search products..."
-          />
-        </div>
-
-        {/* Category quick filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-          <button
-            onClick={() => setFilters({ ...filters, categories: [] })}
-            className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-150"
+          {/* Search — desktop */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPage(1);
+            }}
+            className="hidden sm:flex items-center rounded-md overflow-hidden"
             style={{
+              border: `1.5px solid ${colors.border}`,
+              width: '320px',
+              backgroundColor: colors.white,
+            }}
+          >
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search products..."
+              style={{
+                flex: 1,
+                padding: '9px 14px',
+                fontSize: '13px',
+                color: colors.secondary,
+                border: 'none',
+                outline: 'none',
+                backgroundColor: 'transparent',
+              }}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                  aria-label="Clear search"
+
+                style={{
+                  padding: '0 8px',
+                  color: colors.textMuted,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+            <button
+              type="submit"
+                aria-label="submit"
+
+              style={{
+                padding: '9px 14px',
+                backgroundColor: colors.primary,
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                stroke={colors.white}
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        {/* Mobile search */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPage(1);
+          }}
+          className="sm:hidden flex items-center rounded-md overflow-hidden mb-4"
+          style={{ border: `1.5px solid ${colors.border}`, backgroundColor: colors.white }}
+        >
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search products..."
+            style={{
+              flex: 1,
+              padding: '9px 14px',
+              fontSize: '13px',
+              color: colors.secondary,
+              border: 'none',
+              outline: 'none',
+            }}
+          />
+          <button
+            type="submit"
+              aria-label="form submit"
+
+            style={{
+              padding: '9px 14px',
+              backgroundColor: colors.primary,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              stroke={colors.white}
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+            </svg>
+          </button>
+        </form>
+
+        {/* Category quick pills */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+            paddingBottom: '4px',
+            marginBottom: '20px',
+          }}
+        >
+          <button
+            onClick={() => {
+              setFilters({ ...filters, categories: [] });
+              setPage(1);
+            }}
+            style={{
+              flexShrink: 0,
+              padding: '6px 16px',
+              borderRadius: '999px',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: 'none',
               backgroundColor: filters.categories.length === 0 ? colors.primary : colors.white,
               color: filters.categories.length === 0 ? colors.white : colors.textMuted,
-              border: `1px solid ${filters.categories.length === 0 ? colors.primary : colors.border}`,
+              outline: filters.categories.length === 0 ? 'none' : `1px solid ${colors.border}`,
             }}
           >
             All
@@ -165,14 +303,25 @@ export default function ProductsPage() {
           {mockCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setFilters({ ...filters, categories: [cat.slug] })}
-              className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-150"
+              onClick={() => {
+                setFilters({ ...filters, categories: [cat.slug] });
+                setPage(1);
+              }}
               style={{
+                flexShrink: 0,
+                padding: '6px 16px',
+                borderRadius: '999px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: 'none',
                 backgroundColor: filters.categories.includes(cat.slug)
                   ? colors.primary
                   : colors.white,
                 color: filters.categories.includes(cat.slug) ? colors.white : colors.textMuted,
-                border: `1px solid ${filters.categories.includes(cat.slug) ? colors.primary : colors.border}`,
+                outline: filters.categories.includes(cat.slug)
+                  ? 'none'
+                  : `1px solid ${colors.border}`,
               }}
             >
               {cat.name}
@@ -180,24 +329,45 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        <div className="flex gap-6">
+        {/* Main layout */}
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
           {/* Sidebar — desktop */}
-          <div className="hidden lg:block flex-shrink-0" style={{ width: '220px' }}>
-            <FilterSidebar filters={filters} onChange={setFilters} />
+          <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
+            <FilterSidebar filters={filters} onChange={handleFilterChange} />
           </div>
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
+          {/* Content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             {/* Toolbar */}
             <div
-              className="flex items-center justify-between gap-3 mb-4 p-3 rounded-xl"
-              style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}` }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                marginBottom: '16px',
+                padding: '10px 14px',
+                backgroundColor: colors.white,
+                borderRadius: '10px',
+                border: `1px solid ${colors.border}`,
+              }}
             >
-              {/* Mobile filter button */}
+              {/* Mobile filter btn */}
               <button
                 onClick={() => setMobileFiltersOpen(true)}
-                className="lg:hidden flex items-center gap-2 text-sm font-semibold"
-                style={{ color: colors.secondary }}
+                className="lg:hidden"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: colors.secondary,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
               >
                 <svg
                   width="16"
@@ -214,58 +384,75 @@ export default function ProductsPage() {
                 Filters
                 {activeFilterCount > 0 && (
                   <span
-                    className="w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                    style={{ backgroundColor: colors.primary, color: colors.white }}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
                     {activeFilterCount}
                   </span>
                 )}
               </button>
 
-              {/* Results count */}
-              <span className="text-xs hidden lg:block" style={{ color: colors.textMuted }}>
-                Showing {filteredProducts.length} results
+              <span
+                className="hidden lg:block"
+                style={{ fontSize: '12px', color: colors.textMuted }}
+              >
+                Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(page * ITEMS_PER_PAGE, filteredProducts.length)} of{' '}
+                {filteredProducts.length}
               </span>
 
-              <div className="flex items-center gap-3 ml-auto">
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}
+              >
                 {/* Sort */}
-                <select
+                <SortSelect
                   value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="text-xs px-3 py-1.5 rounded-md focus:outline-none"
-                  style={{
-                    border: `1px solid ${colors.border}`,
-                    color: colors.secondary,
-                    backgroundColor: colors.white,
+                  onChange={(v) => {
+                    setSort(v);
+                    setPage(1);
                   }}
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                />
 
                 {/* View toggle */}
                 <div
-                  className="hidden sm:flex items-center rounded-md overflow-hidden"
-                  style={{ border: `1px solid ${colors.border}` }}
+                  className="hidden sm:flex"
+                  style={{
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                  }}
                 >
                   {(['grid', 'list'] as const).map((v) => (
                     <button
                       key={v}
                       onClick={() => setView(v)}
-                      className="p-1.5 transition-colors duration-150"
                       style={{
+                        width: '34px',
+                        height: '34px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         backgroundColor: view === v ? colors.primary : colors.white,
                         color: view === v ? colors.white : colors.textMuted,
+                        border: 'none',
+                        cursor: 'pointer',
                       }}
                       aria-label={`${v} view`}
                     >
                       {v === 'grid' ? (
                         <svg
-                          width="16"
-                          height="16"
+                          width="14"
+                          height="14"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
@@ -278,8 +465,8 @@ export default function ProductsPage() {
                         </svg>
                       ) : (
                         <svg
-                          width="16"
-                          height="16"
+                          width="14"
+                          height="14"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
@@ -296,61 +483,127 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Product Grid */}
-            {filteredProducts.length > 0 ? ( // Conditional rendering for empty state
-              <ProductGridDisplay products={filteredProducts} view={view} /> // Use the new ProductGridDisplay component
+            {/* Product grid */}
+            {paginatedProducts.length === 0 ? (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '64px 24px',
+                  textAlign: 'center',
+                  backgroundColor: colors.white,
+                  borderRadius: '12px',
+                  border: `1px dashed ${colors.border}`,
+                }}
+              >
+                <svg
+                  width="48"
+                  height="48"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  style={{ marginBottom: '16px' }}
+                >
+                  <circle cx="11" cy="11" r="8" stroke={colors.border} strokeWidth="1.5" />
+                  <path
+                    d="M21 21l-4.35-4.35"
+                    stroke={colors.border}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M8 11h6M11 8v6"
+                    stroke={colors.primary}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <h3
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: colors.secondary,
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  No products found
+                </h3>
+                <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
+                  Try adjusting your filters or search term
+                </p>
+              </div>
             ) : (
               <div
-                className="flex flex-col items-center justify-center py-20 px-4 rounded-xl border-2 border-dashed"
-                style={{ borderColor: colors.border, backgroundColor: colors.white }}
+                style={
+                  view === 'grid'
+                    ? {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                        gap: '16px',
+                      }
+                    : { display: 'flex', flexDirection: 'column', gap: '12px' }
+                }
               >
-                <p className="text-lg font-medium" style={{ color: colors.secondary }}>
-                  No products found
-                </p>
-                <p className="text-sm mt-1 mb-6" style={{ color: colors.textMuted }}>
-                  Try adjusting your filters or search terms to find what you're looking for.
-                </p>
-                <button
-                  onClick={() =>
-                    setFilters({
-                      categories: [],
-                      brands: [],
-                      priceMin: 0,
-                      priceMax: 500000,
-                      rating: null,
-                      badge: [],
-                    })
-                  }
-                  className="px-6 py-2 rounded-full text-white font-bold text-sm transition-transform active:scale-95"
-                  style={{ backgroundColor: colors.primary }}
-                >
-                  Clear All Filters
-                </button>
+                {paginatedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} view={view} />
+                ))}
               </div>
             )}
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(p) => {
+                setPage(p);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Mobile Filter Drawer */}
+      {/* Mobile filter drawer */}
       {mobileFiltersOpen && (
         <>
           <div
-            className="fixed inset-0 z-40"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
             onClick={() => setMobileFiltersOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 40, backgroundColor: 'rgba(0,0,0,0.5)' }}
           />
           <div
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto"
-            style={{ backgroundColor: colors.white }}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              borderRadius: '20px 20px 0 0',
+              backgroundColor: colors.white,
+              padding: '16px',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+            }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-black" style={{ color: colors.secondary }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px',
+              }}
+            >
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: colors.secondary, margin: 0 }}>
                 Filters
               </h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                style={{ color: colors.textMuted }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: colors.textMuted,
+                }}
               >
                 <svg
                   width="20"
@@ -364,7 +617,13 @@ export default function ProductsPage() {
                 </svg>
               </button>
             </div>
-            <FilterSidebar filters={filters} onChange={setFilters} />
+            <FilterSidebar
+              filters={filters}
+              onChange={(f) => {
+                handleFilterChange(f);
+                setMobileFiltersOpen(false);
+              }}
+            />
           </div>
         </>
       )}

@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { type Product, formatPrice } from '@/lib/mock-data';
+import { useCartStore } from '@/store/cartStore';
+import { useUIStore } from '@/store/uiStore';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -42,23 +44,28 @@ const StarRating = ({ rating, count }: { rating: number; count: number }) => (
   </div>
 );
 
-interface ProductDetailsProps {
-  product: Product;
-  className?: string;
-}
-
-// Demo color/variant options — replace with real variant data later
 const colorOptions = [
   { name: 'Matte Black', hex: '#1a1a1a' },
   { name: 'Pearl White', hex: '#F5F5F5' },
   { name: 'Champagne Gold', hex: '#C9A876' },
 ];
 
+interface ProductDetailsProps {
+  product: Product;
+  className?: string;
+}
+
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = '' }) => {
   const [selectedColor, setSelectedColor] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
+
+  // ── Zustand store hooks ──
+  const addProduct = useCartStore((state) => state.addProduct);
+  const isInCart = useCartStore((state) => state.isInCart);
+  const openCartDrawer = useUIStore((state) => state.openCartDrawer);
+
+  const inCart = isInCart(product.id);
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -71,10 +78,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
     hot: colors.badgeSale,
   };
 
+  // ── Add to Cart — now wired to Zustand ──
   const handleAddToCart = () => {
-    // UI only — no logic yet, will wire to cart store in Week 3
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    addProduct(product, quantity, colorOptions[selectedColor].name);
+    openCartDrawer(); // slide open the cart drawer immediately
   };
 
   return (
@@ -194,7 +201,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
 
       <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
 
-      {/* Color/Variant selector */}
+      {/* Color selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <span style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary }}>
           Color:{' '}
@@ -289,7 +296,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
           </button>
         </div>
 
-        {/* Add to Cart — UI only */}
+        {/* Add to Cart — wired to cartStore */}
         <button
           onClick={handleAddToCart}
           disabled={!product.inStock}
@@ -301,7 +308,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
             border: 'none',
             backgroundColor: !product.inStock
               ? colors.border
-              : added
+              : inCart
                 ? colors.primaryHover
                 : colors.primary,
             color: colors.white,
@@ -315,41 +322,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
             transition: 'background-color 0.2s',
           }}
         >
-          {added ? (
-            <>
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                stroke={colors.white}
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-              >
-                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Added to Cart
-            </>
-          ) : (
-            <>
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                stroke={colors.white}
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-                <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Add to Cart
-            </>
-          )}
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke={colors.white}
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+            <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {inCart ? 'Added — View Cart' : 'Add to Cart'}
         </button>
 
         {/* Wishlist */}
@@ -382,7 +371,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
         </button>
       </div>
 
-      {/* Buy Now button */}
+      {/* Buy Now */}
       <button
         style={{
           width: '100%',

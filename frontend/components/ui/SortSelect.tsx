@@ -29,6 +29,7 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange, className = ''
   return (
     <div className={className} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <label
+        htmlFor="sort-select"
         style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -41,6 +42,7 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange, className = ''
       </label>
       <div style={{ position: 'relative' }}>
         <select
+          id="sort-select"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{

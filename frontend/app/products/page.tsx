@@ -169,8 +169,8 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                  aria-label="Clear search"
-
+                aria-label="Clear search"
+                title="Clear search"
                 style={{
                   padding: '0 8px',
                   color: colors.textMuted,
@@ -193,8 +193,8 @@ export default function ProductsPage() {
             )}
             <button
               type="submit"
-                aria-label="submit"
-
+              aria-label="Search products"
+              title="Search products"
               style={{
                 padding: '9px 14px',
                 backgroundColor: colors.primary,
@@ -246,8 +246,8 @@ export default function ProductsPage() {
           />
           <button
             type="submit"
-              aria-label="form submit"
-
+            aria-label="Search products"
+            title="Search products"
             style={{
               padding: '9px 14px',
               backgroundColor: colors.primary,
@@ -598,6 +598,8 @@ export default function ProductsPage() {
               </h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
+                aria-label="Close filters"
+                title="Close filters"
                 style={{
                   background: 'none',
                   border: 'none',

@@ -22,7 +22,7 @@ export interface FilterState {
   priceMin: number;
   priceMax: number;
   rating: number | null;
-  badge: string[];
+  inStockOnly: boolean;
 }
 
 interface FilterSidebarProps {
@@ -31,26 +31,50 @@ interface FilterSidebarProps {
   className?: string;
 }
 
-const FilterSection = ({ title, children }: { title: string; children: React.ReactNode }) => {
-  const [open, setOpen] = useState(true);
+// ─────────────────────────────────────────
+// Collapsible filter section
+// ─────────────────────────────────────────
+const FilterSection = ({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <div style={{ borderBottom: `1px solid ${colors.border}` }} className="py-4">
+    <div
+      style={{
+        borderBottom: `1px solid ${colors.border}`,
+        paddingBottom: '16px',
+        marginBottom: '16px',
+      }}
+    >
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-left"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '0 0 12px 0',
+        }}
       >
-        <span className="text-sm font-bold" style={{ color: colors.secondary }}>
-          {title}
-        </span>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary }}>{title}</span>
         <svg
           width="14"
           height="14"
           fill="none"
-          stroke="currentColor"
+          stroke={colors.textMuted}
           strokeWidth="2.5"
           viewBox="0 0 24 24"
           style={{
-            color: colors.textMuted,
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s',
           }}
@@ -58,12 +82,80 @@ const FilterSection = ({ title, children }: { title: string; children: React.Rea
           <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {open && <div className="mt-3">{children}</div>}
+      {open && <div>{children}</div>}
     </div>
   );
 };
 
+// ─────────────────────────────────────────
+// Custom checkbox
+// ─────────────────────────────────────────
+const CheckItem = ({
+  label,
+  checked,
+  count,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  count?: number;
+  onChange: () => void;
+}) => (
+  <label
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      cursor: 'pointer',
+      marginBottom: '10px',
+    }}
+  >
+    <div
+      onClick={onChange}
+      style={{
+        width: '16px',
+        height: '16px',
+        borderRadius: '4px',
+        border: `2px solid ${checked ? colors.primary : colors.border}`,
+        backgroundColor: checked ? colors.primary : colors.white,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+      }}
+    >
+      {checked && (
+        <svg width="9" height="9" fill="none" stroke={colors.white} viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
+        </svg>
+      )}
+    </div>
+    <span
+      onClick={onChange}
+      style={{
+        fontSize: '13px',
+        color: checked ? colors.secondary : colors.textMuted,
+        flex: 1,
+        cursor: 'pointer',
+      }}
+    >
+      {label}
+    </span>
+    {count !== undefined && (
+      <span style={{ fontSize: '11px', color: colors.textMuted }}>({count})</span>
+    )}
+  </label>
+);
+
+// ─────────────────────────────────────────
+// MAIN FILTER SIDEBAR
+// ─────────────────────────────────────────
 const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, className = '' }) => {
+  const [priceMin, setPriceMin] = useState(String(filters.priceMin));
+  const [priceMax, setPriceMax] = useState(String(filters.priceMax));
+
   const toggleCategory = (slug: string) => {
     const updated = filters.categories.includes(slug)
       ? filters.categories.filter((c) => c !== slug)
@@ -78,198 +170,227 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
     onChange({ ...filters, brands: updated });
   };
 
-  const toggleBadge = (badge: string) => {
-    const updated = filters.badge.includes(badge)
-      ? filters.badge.filter((b) => b !== badge)
-      : [...filters.badge, badge];
-    onChange({ ...filters, badge: updated });
+  const applyPrice = () => {
+    onChange({
+      ...filters,
+      priceMin: Number(priceMin) || 0,
+      priceMax: Number(priceMax) || 500000,
+    });
   };
 
-  const hasActiveFilters =
+  const hasActive =
     filters.categories.length > 0 ||
     filters.brands.length > 0 ||
-    filters.badge.length > 0 ||
     filters.rating !== null ||
+    filters.inStockOnly ||
     filters.priceMin > 0 ||
     filters.priceMax < 500000;
 
-  const resetFilters = () => {
+  const reset = () => {
+    setPriceMin('0');
+    setPriceMax('500000');
     onChange({
       categories: [],
       brands: [],
       priceMin: 0,
       priceMax: 500000,
       rating: null,
-      badge: [],
+      inStockOnly: false,
     });
   };
 
   return (
     <aside
-      className={`flex flex-col rounded-xl p-4 ${className}`}
-      style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}` }}
+      className={className}
+      style={{
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.border}`,
+        borderRadius: '12px',
+        padding: '16px',
+      }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between pb-4"
-        style={{ borderBottom: `1px solid ${colors.border}` }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: `1px solid ${colors.border}`,
+        }}
       >
-        <h3 className="text-sm font-black" style={{ color: colors.secondary }}>
-          Filters
-        </h3>
-        {hasActiveFilters && (
+        <span style={{ fontSize: '14px', fontWeight: 800, color: colors.secondary }}>Filters</span>
+        {hasActive && (
           <button
-            onClick={resetFilters}
-            className="text-xs font-semibold"
-            style={{ color: colors.primary }}
+            onClick={reset}
+            style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: colors.primary,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
           >
             Clear All
           </button>
         )}
       </div>
 
-      {/* Categories */}
+      {/* ── CATEGORY FILTER ── */}
       <FilterSection title="Category">
-        <div className="flex flex-col gap-2">
-          {mockCategories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-2.5 cursor-pointer group">
-              <div
-                onClick={() => toggleCategory(cat.slug)}
-                className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-150"
-                style={{
-                  border: `2px solid ${filters.categories.includes(cat.slug) ? colors.primary : colors.border}`,
-                  backgroundColor: filters.categories.includes(cat.slug)
-                    ? colors.primary
-                    : colors.white,
-                }}
-              >
-                {filters.categories.includes(cat.slug) && (
-                  <svg width="10" height="10" fill="none" stroke={colors.white} viewBox="0 0 24 24">
-                    <path
-                      d="M5 13l4 4L19 7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                    />
-                  </svg>
-                )}
-              </div>
-              <span
-                className="text-xs flex-1"
-                style={{
-                  color: filters.categories.includes(cat.slug)
-                    ? colors.secondary
-                    : colors.textMuted,
-                }}
-                onClick={() => toggleCategory(cat.slug)}
-              >
-                {cat.name}
-              </span>
-              <span className="text-xs" style={{ color: colors.textMuted }}>
-                {cat.productCount}
-              </span>
-            </label>
-          ))}
-        </div>
+        {mockCategories.map((cat) => (
+          <CheckItem
+            key={cat.id}
+            label={cat.name}
+            checked={filters.categories.includes(cat.slug)}
+            count={cat.productCount}
+            onChange={() => toggleCategory(cat.slug)}
+          />
+        ))}
       </FilterSection>
 
-      {/* Price Range */}
+      {/* ── PRICE RANGE FILTER ── */}
       <FilterSection title="Price Range">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <label className="text-xs mb-1 block" style={{ color: colors.textMuted }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Price inputs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <label
+                style={{
+                  fontSize: '11px',
+                  color: colors.textMuted,
+                  display: 'block',
+                  marginBottom: '4px',
+                }}
+              >
                 Min (₦)
               </label>
               <input
                 type="number"
-                value={filters.priceMin}
-                onChange={(e) => onChange({ ...filters, priceMin: Number(e.target.value) })}
-                className="w-full px-2 py-1.5 rounded text-xs focus:outline-none"
-                style={{ border: `1px solid ${colors.border}`, color: colors.secondary }}
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                onBlur={applyPrice}
                 placeholder="0"
-                min={0}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  fontSize: '12px',
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: '6px',
+                  color: colors.secondary,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
-            <span className="text-xs mt-4" style={{ color: colors.textMuted }}>
-              —
-            </span>
-            <div className="flex-1">
-              <label className="text-xs mb-1 block" style={{ color: colors.textMuted }}>
+            <span style={{ color: colors.textMuted, fontSize: '12px', marginTop: '16px' }}>—</span>
+            <div style={{ flex: 1 }}>
+              <label
+                style={{
+                  fontSize: '11px',
+                  color: colors.textMuted,
+                  display: 'block',
+                  marginBottom: '4px',
+                }}
+              >
                 Max (₦)
               </label>
               <input
                 type="number"
-                value={filters.priceMax}
-                onChange={(e) => onChange({ ...filters, priceMax: Number(e.target.value) })}
-                className="w-full px-2 py-1.5 rounded text-xs focus:outline-none"
-                style={{ border: `1px solid ${colors.border}`, color: colors.secondary }}
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                onBlur={applyPrice}
                 placeholder="500000"
-                min={0}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  fontSize: '12px',
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: '6px',
+                  color: colors.secondary,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
+          </div>
+
+          {/* Quick price ranges */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+            {[
+              { label: 'Under ₦10,000', min: 0, max: 10000 },
+              { label: '₦10,000 — ₦50,000', min: 10000, max: 50000 },
+              { label: '₦50,000 — ₦100,000', min: 50000, max: 100000 },
+              { label: 'Above ₦100,000', min: 100000, max: 500000 },
+            ].map((range) => (
+              <button
+                key={range.label}
+                onClick={() => {
+                  setPriceMin(String(range.min));
+                  setPriceMax(String(range.max));
+                  onChange({ ...filters, priceMin: range.min, priceMax: range.max });
+                }}
+                style={{
+                  textAlign: 'left',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  color:
+                    filters.priceMin === range.min && filters.priceMax === range.max
+                      ? colors.primary
+                      : colors.textMuted,
+                  fontWeight:
+                    filters.priceMin === range.min && filters.priceMax === range.max ? 600 : 400,
+                  padding: '2px 0',
+                }}
+              >
+                {range.label}
+              </button>
+            ))}
           </div>
         </div>
       </FilterSection>
 
-      {/* Brands */}
+      {/* ── BRAND FILTER ── */}
       <FilterSection title="Brand">
-        <div className="flex flex-col gap-2">
-          {mockBrands.map((brand) => (
-            <label key={brand.id} className="flex items-center gap-2.5 cursor-pointer">
-              <div
-                onClick={() => toggleBrand(brand.slug)}
-                className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-150"
-                style={{
-                  border: `2px solid ${filters.brands.includes(brand.slug) ? colors.primary : colors.border}`,
-                  backgroundColor: filters.brands.includes(brand.slug)
-                    ? colors.primary
-                    : colors.white,
-                }}
-              >
-                {filters.brands.includes(brand.slug) && (
-                  <svg width="10" height="10" fill="none" stroke={colors.white} viewBox="0 0 24 24">
-                    <path
-                      d="M5 13l4 4L19 7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                    />
-                  </svg>
-                )}
-              </div>
-              <span
-                className="text-xs"
-                style={{
-                  color: filters.brands.includes(brand.slug) ? colors.secondary : colors.textMuted,
-                }}
-                onClick={() => toggleBrand(brand.slug)}
-              >
-                {brand.name}
-              </span>
-            </label>
-          ))}
-        </div>
+        {mockBrands.map((brand) => (
+          <CheckItem
+            key={brand.id}
+            label={brand.name}
+            checked={filters.brands.includes(brand.slug)}
+            onChange={() => toggleBrand(brand.slug)}
+          />
+        ))}
       </FilterSection>
 
-      {/* Rating */}
+      {/* ── RATING FILTER ── */}
       <FilterSection title="Rating">
-        <div className="flex flex-col gap-2">
-          {[5, 4, 3].map((stars) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {[5, 4, 3, 2].map((stars) => (
             <button
               key={stars}
               onClick={() =>
                 onChange({ ...filters, rating: filters.rating === stars ? null : stars })
               }
-              className="flex items-center gap-2 text-left"
-              aria-label={`${stars} stars and above`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
             >
-              <div className="flex items-center gap-0.5">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                 {[1, 2, 3, 4, 5].map((s) => (
                   <svg
                     key={s}
-                    width="12"
-                    height="12"
+                    width="13"
+                    height="13"
                     viewBox="0 0 24 24"
                     fill={s <= stars ? '#F59E0B' : 'none'}
                     stroke="#F59E0B"
@@ -279,13 +400,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
                   </svg>
                 ))}
               </div>
-              <span className="text-xs" style={{ color: colors.textMuted }}>
-                & above
-              </span>
+              <span style={{ fontSize: '12px', color: colors.textMuted }}>& above</span>
               {filters.rating === stars && (
                 <span
-                  className="ml-auto w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: colors.primary }}
+                  style={{
+                    marginLeft: 'auto',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: colors.primary,
+                  }}
                 />
               )}
             </button>
@@ -293,53 +417,35 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
         </div>
       </FilterSection>
 
-      {/* Availability */}
-      <FilterSection title="Availability">
-        <div className="flex flex-col gap-2">
-          {['sale', 'new', 'best-seller', 'hot'].map((badge) => (
-            <label key={badge} className="flex items-center gap-2.5 cursor-pointer">
-              <div
-                onClick={() => toggleBadge(badge)}
-                className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer"
-                style={{
-                  border: `2px solid ${filters.badge.includes(badge) ? colors.primary : colors.border}`,
-                  backgroundColor: filters.badge.includes(badge) ? colors.primary : colors.white,
-                }}
-              >
-                {filters.badge.includes(badge) && (
-                  <svg width="10" height="10" fill="none" stroke={colors.white} viewBox="0 0 24 24">
-                    <path
-                      d="M5 13l4 4L19 7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                    />
-                  </svg>
-                )}
-              </div>
-              <span
-                className="text-xs capitalize"
-                style={{
-                  color: filters.badge.includes(badge) ? colors.secondary : colors.textMuted,
-                }}
-                onClick={() => toggleBadge(badge)}
-              >
-                {badge.replace(/-/g, ' ')}
-              </span>
-            </label>
-          ))}
-        </div>
+      {/* ── AVAILABILITY ── */}
+      <FilterSection title="Availability" defaultOpen={false}>
+        <CheckItem
+          label="In Stock Only"
+          checked={filters.inStockOnly}
+          onChange={() => onChange({ ...filters, inStockOnly: !filters.inStockOnly })}
+        />
       </FilterSection>
 
       {/* Apply button */}
       <button
-        className="mt-4 w-full py-2.5 rounded-md text-sm font-bold transition-all duration-200"
-        style={{ backgroundColor: colors.primary, color: colors.white }}
+        style={{
+          width: '100%',
+          padding: '10px',
+          borderRadius: '8px',
+          backgroundColor: colors.primary,
+          color: colors.white,
+          fontSize: '13px',
+          fontWeight: 700,
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'background-color 0.2s',
+          marginTop: '4px',
+        }}
         onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.backgroundColor = colors.primaryHover)
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.primaryHover)
         }
         onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.backgroundColor = colors.primary)
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.primary)
         }
       >
         Apply Filters
@@ -349,3 +455,4 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
 };
 
 export default FilterSidebar;
+// export type { FilterState };

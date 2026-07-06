@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Icon } from '../ui';
+import { usePathname } from 'next/navigation';
+import { useCartStore } from '@/store/cartStore';
+import { useUIStore } from '@/store/uiStore';
+import CartDrawer from '@/components/cart/CartDrawer';
 
 const colors = {
   primary: '#22C55E',
@@ -11,7 +14,6 @@ const colors = {
   white: '#FFFFFF',
   border: '#E5E7EB',
   textMuted: '#6B7280',
-  bgLight: '#F9FAFB',
 };
 
 const categoryLinks = [
@@ -36,24 +38,53 @@ const Logo = () => (
       flexShrink: 0,
     }}
   >
-    <Icon name="Logo" color={colors.primary} width={70} />
+    <span
+      style={{
+        fontSize: '22px',
+        fontWeight: 900,
+        color: colors.secondary,
+        letterSpacing: '-0.02em',
+      }}
+    >
+      Jav
+    </span>
+    <span
+      style={{ fontSize: '22px', fontWeight: 900, color: colors.primary, letterSpacing: '-0.02em' }}
+    >
+      aL
+    </span>
+    <span
+      style={{
+        width: '5px',
+        height: '5px',
+        borderRadius: '50%',
+        backgroundColor: colors.primary,
+        marginBottom: '10px',
+        marginLeft: '-1px',
+        display: 'inline-block',
+      }}
+    />
   </Link>
 );
 
-const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
+const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [path, setPath] = useState('/');
+  const [hasMounted, setHasMounted] = useState(false);
+  const pathname = usePathname();
   const [search, setSearch] = useState('');
 
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     setPath(window.location.pathname);
-  //     const onScroll = () => setScrolled(window.scrollY > 10);
-  //     window.addEventListener('scroll', onScroll);
-  //     return () => window.removeEventListener('scroll', onScroll);
-  //   }
-  // }, []);
+  // ── Zustand stores ──
+  const cartItemCount = useCartStore((state) => state.getItemCount());
+  const { isCartDrawerOpen, openCartDrawer, closeCartDrawer } = useUIStore();
+
+  useEffect(() => {
+    setHasMounted(true);
+
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <>
@@ -82,12 +113,7 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
           ON ORDERS ABOVE ₦50,000 &nbsp;&nbsp;&nbsp; • QUALITY &nbsp;&nbsp;&nbsp; • SAFETY
           &nbsp;&nbsp;&nbsp; • RELIABILITY &nbsp;&nbsp;&nbsp; • SHOP NOW →
         </div>
-        <style>{`
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-        `}</style>
+        <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
       </div>
 
       {/* ── Main Navbar ── */}
@@ -102,14 +128,14 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
           transition: 'box-shadow 0.2s',
         }}
       >
-        {/* Top row: Logo + Search + Actions */}
+        {/* Top row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4" style={{ height: '64px' }}>
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden flex flex-col gap-1.5"
-              aria-label="Menu"
+              aria-label="Open menu"
             >
               {[0, 1, 2].map((i) => (
                 <span
@@ -125,10 +151,9 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
               ))}
             </button>
 
-            {/* Logo */}
             <Logo />
 
-            {/* Search bar — center */}
+            {/* Search */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -136,10 +161,7 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                   window.location.href = `/products?search=${encodeURIComponent(search)}`;
               }}
               className="flex-1 hidden sm:flex items-center rounded-md overflow-hidden"
-              style={{
-                border: `1.5px solid ${colors.border}`,
-                maxWidth: '480px',
-              }}
+              style={{ border: `1.5px solid ${colors.border}`, maxWidth: '480px' }}
             >
               <input
                 type="text"
@@ -201,15 +223,19 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 </svg>
               </Link>
 
-              {/* Cart */}
-              <Link
-                href="/cart"
-                aria-label="Cart"
+              {/* Cart — wired to CartDrawer + live count */}
+              <button
+                onClick={openCartDrawer}
+                aria-label="Open cart"
                 style={{
                   position: 'relative',
                   color: colors.secondary,
                   display: 'flex',
                   alignItems: 'center',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
                 }}
               >
                 <svg
@@ -228,15 +254,16 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                   <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
                   <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {cartCount > 0 && (
+                {/* Live cart count badge */}
+                {hasMounted && cartItemCount > 0 && (
                   <span
                     style={{
                       position: 'absolute',
                       top: '-8px',
                       right: '-8px',
-                      width: '18px',
+                      minWidth: '18px',
                       height: '18px',
-                      borderRadius: '50%',
+                      borderRadius: '999px',
                       backgroundColor: colors.primary,
                       color: colors.white,
                       fontSize: '10px',
@@ -244,12 +271,13 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      padding: '0 4px',
                     }}
                   >
-                    {cartCount}
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
                   </span>
                 )}
-              </Link>
+              </button>
 
               {/* Sign In */}
               <Link
@@ -265,7 +293,7 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 Sign In
               </Link>
 
-              {/* Open Trade Account */}
+              {/* Trade account */}
               <Link
                 href="/trade-account"
                 className="hidden lg:inline-flex items-center rounded-md font-semibold text-sm"
@@ -283,19 +311,15 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
         </div>
 
         {/* ── Category Nav Row ── */}
-        <div
-          style={{
-            borderTop: `1px solid ${colors.border}`,
-            backgroundColor: colors.white,
-          }}
-        >
+        <div style={{ borderTop: `1px solid ${colors.border}`, backgroundColor: colors.white }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
               className="hidden lg:flex items-center gap-0 overflow-x-auto"
               style={{ height: '40px' }}
             >
               {categoryLinks.map((link) => {
-                const active = path.includes(link.href.split('?')[0]) && link.href !== '/products';
+                const active =
+                  pathname?.includes(link.href.split('?')[0]) && link.href !== '/products';
                 return (
                   <Link
                     key={link.label}
@@ -360,7 +384,6 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
               overflowY: 'auto',
             }}
           >
-            {/* Drawer header */}
             <div
               className="flex items-center justify-between px-5 py-4"
               style={{ borderBottom: `1px solid ${colors.border}` }}
@@ -368,8 +391,13 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
               <Logo />
               <button
                 onClick={() => setMobileOpen(false)}
-                style={{ color: colors.secondary }}
                 aria-label="Close menu"
+                style={{
+                  color: colors.secondary,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 <svg
                   width="20"
@@ -383,8 +411,6 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 </svg>
               </button>
             </div>
-
-            {/* Mobile search */}
             <div className="px-5 py-3" style={{ borderBottom: `1px solid ${colors.border}` }}>
               <form
                 onSubmit={(e) => {
@@ -402,9 +428,9 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 />
                 <button
                   type="submit"
+                  aria-label="Search"
                   className="px-3 py-2"
                   style={{ backgroundColor: colors.primary }}
-                  aria-label="Search"
                 >
                   <svg
                     width="14"
@@ -420,8 +446,6 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 </button>
               </form>
             </div>
-
-            {/* Category links */}
             <nav style={{ display: 'flex', flexDirection: 'column', padding: '8px 0' }}>
               {categoryLinks.map((link) => (
                 <Link
@@ -441,8 +465,6 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
                 </Link>
               ))}
             </nav>
-
-            {/* Sign in */}
             <div
               style={{
                 marginTop: 'auto',
@@ -471,6 +493,9 @@ const Header: React.FC<{ cartCount?: number }> = ({ cartCount = 0 }) => {
           </div>
         </>
       )}
+
+      {/* ── Cart Drawer — rendered globally from Header ── */}
+      <CartDrawer />
     </>
   );
 };

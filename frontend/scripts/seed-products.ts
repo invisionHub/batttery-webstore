@@ -1,5 +1,6 @@
-import { importProducts } from '@/features/products/import/importer';
-import { seedProductsToMongo } from '@/lib/mongodb';
+import { importProducts } from '../features/products/import/importer';
+import { seedProductsToMongo } from '../lib/mongodb';
+import type { Product } from '../features/products/types/product.type';
 
 async function main() {
   const importResult = await importProducts();
@@ -19,7 +20,7 @@ async function main() {
     return;
   }
 
-  const result = await seedProductsToMongo(importResult.validProducts);
+  const result = await seedProductsToMongo(importResult.validProducts as Product[]);
 
   console.log({
     ...result,

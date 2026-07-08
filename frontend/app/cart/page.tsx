@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import CartItem from '@/components/cart/CartItem';
-import CartSummary from '@/components/cart/CartSummary';
+import { CartSummary } from '@/components/cart';
 
 // ============================================
 // BRAND COLORS — change these to update theme

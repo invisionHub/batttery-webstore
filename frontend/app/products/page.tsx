@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { mockProducts, mockCategories } from '@/lib/mock-data';
+import { mockCategories } from '@/lib/mock-data';
 import FilterSidebar, { type FilterState } from '@/components/product/FilterSidebar';
 import SortSelect from '@/components/ui/SortSelect';
 import Pagination from '@/components/ui/Pagination';
 import ProductCard from '@/components/product/ProductCard';
+import { useProductStore } from '@/features/products/store/productStore';
 
 const colors = {
   primary: '#22C55E',
@@ -20,6 +21,7 @@ const colors = {
 const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPage() {
+  const { products, loading, error, hasLoaded, loadProducts } = useProductStore();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('popular');
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -34,13 +36,19 @@ export default function ProductsPage() {
     inStockOnly: false,
   });
 
+  useEffect(() => {
+    if (!hasLoaded) {
+      void loadProducts();
+    }
+  }, [hasLoaded, loadProducts]);
+
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
     setPage(1);
   };
 
   const filteredProducts = useMemo(() => {
-    let result = [...mockProducts];
+    let result = [...products];
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -130,9 +138,24 @@ export default function ProductsPage() {
               All Products
             </h1>
             <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0 0' }}>
-              {filteredProducts.length} products found
+              {loading ? 'Loading products...' : `${filteredProducts.length} products found`}
             </p>
           </div>
+
+          {error && (
+            <div
+              style={{
+                marginBottom: '16px',
+                padding: '12px 14px',
+                backgroundColor: '#FEF2F2',
+                color: '#B91C1C',
+                borderRadius: '8px',
+                fontSize: '13px',
+              }}
+            >
+              {error}
+            </div>
+          )}
 
           {/* Search — desktop */}
           <form

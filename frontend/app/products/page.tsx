@@ -1,8 +1,7 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { useProducts } from '@/hooks/useProducts';
 import { mockCategories } from '@/lib/mock-data';
 import FilterSidebar, { type FilterState } from '@/components/product/FilterSidebar';
 import SortSelect from '@/components/ui/SortSelect';
@@ -25,6 +24,7 @@ const colors = {
 const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPage() {
+  const { products, loading, error, hasLoaded, loadProducts } = useProductStore();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('popular');
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -60,6 +60,57 @@ export default function ProductsPage() {
     setFilters(newFilters);
     setPage(1);
   };
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q)
+      );
+    }
+
+    if (filters.categories.length > 0)
+      result = result.filter((p) => filters.categories.includes(p.category));
+
+    if (filters.brands.length > 0) result = result.filter((p) => filters.brands.includes(p.brand));
+
+    result = result.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
+
+    if (filters.rating !== null) result = result.filter((p) => p.rating >= filters.rating!);
+
+    if (filters.inStockOnly) result = result.filter((p) => p.inStock);
+
+    switch (sort) {
+      case 'price-asc':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'rating':
+        result.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'newest':
+        result.reverse();
+        break;
+      case 'name-asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    return result;
+  }, [search, filters, sort]);
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
   const activeFilterCount =
     filters.categories.length +
@@ -99,9 +150,26 @@ export default function ProductsPage() {
               All Products
             </h1>
             <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0 0' }}>
-              {isLoading ? 'Loading...' : `${total} products found`}
+              {loading ? 'Loading products...' : `${filteredProducts.length} products found`}
             </p>
           </div>
+
+          {error && (
+            <div
+              style={{
+                marginBottom: '16px',
+                padding: '12px 14px',
+                backgroundColor: '#FEF2F2',
+                color: '#B91C1C',
+                borderRadius: '8px',
+                fontSize: '13px',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Search — desktop */}
           <form
             onSubmit={(e) => {
               e.preventDefault();

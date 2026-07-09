@@ -71,24 +71,27 @@ const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const pathname = usePathname();
   const [search, setSearch] = useState('');
+  const pathname = usePathname();
 
-  // ── Zustand stores ──
   const cartItemCount = useCartStore((state) => state.getItemCount());
-  const { isCartDrawerOpen, openCartDrawer, closeCartDrawer } = useUIStore();
+  const { openCartDrawer } = useUIStore();
 
   useEffect(() => {
-    setHasMounted(true);
+    // Defer setting mounted to avoid synchronous setState inside effect
+    const raf = requestAnimationFrame(() => setHasMounted(true));
 
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   return (
     <>
-      {/* ── Announcement Bar ── */}
+      {/* Announcement Bar */}
       <div
         style={{
           backgroundColor: colors.primary,
@@ -116,7 +119,7 @@ const Header: React.FC = () => {
         <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
       </div>
 
-      {/* ── Main Navbar ── */}
+      {/* Main Navbar */}
       <header
         style={{
           position: 'sticky',
@@ -131,7 +134,7 @@ const Header: React.FC = () => {
         {/* Top row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4" style={{ height: '64px' }}>
-            {/* Mobile hamburger */}
+            {/* Hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden flex flex-col gap-1.5"
@@ -160,7 +163,7 @@ const Header: React.FC = () => {
                 if (search.trim())
                   window.location.href = `/products?search=${encodeURIComponent(search)}`;
               }}
-              className="flex-1 hidden sm:flex items-center rounded-md overflow-hidden"
+              className="flex-1 hidden sm:flex items-center ml-90  rounded-3xl overflow-hidden"
               style={{ border: `1.5px solid ${colors.border}`, maxWidth: '480px' }}
             >
               <input
@@ -173,6 +176,7 @@ const Header: React.FC = () => {
               />
               <button
                 type="submit"
+                aria-label="Search"
                 className="flex items-center justify-center px-4 py-2.5 font-bold text-sm"
                 style={{ backgroundColor: colors.primary, color: colors.white, flexShrink: 0 }}
               >
@@ -223,7 +227,7 @@ const Header: React.FC = () => {
                 </svg>
               </Link>
 
-              {/* Cart — wired to CartDrawer + live count */}
+              {/* Cart */}
               <button
                 onClick={openCartDrawer}
                 aria-label="Open cart"
@@ -254,7 +258,6 @@ const Header: React.FC = () => {
                   <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
                   <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {/* Live cart count badge */}
                 {hasMounted && cartItemCount > 0 && (
                   <span
                     style={{
@@ -280,7 +283,7 @@ const Header: React.FC = () => {
               </button>
 
               {/* Sign In */}
-              <Link
+              {/* <Link
                 href="/auth/signin"
                 className="hidden md:inline-flex items-center rounded-md font-semibold text-sm"
                 style={{
@@ -291,10 +294,10 @@ const Header: React.FC = () => {
                 }}
               >
                 Sign In
-              </Link>
+              </Link> */}
 
               {/* Trade account */}
-              <Link
+              {/* <Link
                 href="/trade-account"
                 className="hidden lg:inline-flex items-center rounded-md font-semibold text-sm"
                 style={{
@@ -305,12 +308,12 @@ const Header: React.FC = () => {
                 }}
               >
                 Open Trade Acc...
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
 
-        {/* ── Category Nav Row ── */}
+        {/* Category Nav Row */}
         <div style={{ borderTop: `1px solid ${colors.border}`, backgroundColor: colors.white }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
@@ -357,7 +360,7 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* ── Mobile Drawer ── */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
         <>
           <div
@@ -411,6 +414,7 @@ const Header: React.FC = () => {
                 </svg>
               </button>
             </div>
+
             <div className="px-5 py-3" style={{ borderBottom: `1px solid ${colors.border}` }}>
               <form
                 onSubmit={(e) => {
@@ -446,6 +450,7 @@ const Header: React.FC = () => {
                 </button>
               </form>
             </div>
+
             <nav style={{ display: 'flex', flexDirection: 'column', padding: '8px 0' }}>
               {categoryLinks.map((link) => (
                 <Link
@@ -465,6 +470,7 @@ const Header: React.FC = () => {
                 </Link>
               ))}
             </nav>
+
             <div
               style={{
                 marginTop: 'auto',
@@ -494,7 +500,7 @@ const Header: React.FC = () => {
         </>
       )}
 
-      {/* ── Cart Drawer — rendered globally from Header ── */}
+      {/* Cart Drawer */}
       <CartDrawer />
     </>
   );

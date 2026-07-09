@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,7 +7,7 @@ import FilterSidebar, { type FilterState } from '@/components/product/FilterSide
 import SortSelect from '@/components/ui/SortSelect';
 import Pagination from '@/components/ui/Pagination';
 import ProductCard from '@/components/product/ProductCard';
-import { useProductStore } from '@/features/products/store/productStore';
+import { ProductCardSkeleton } from '@/components/ui/skeleton';
 
 const colors = {
   primary: '#22C55E',
@@ -16,6 +16,9 @@ const colors = {
   border: '#E5E7EB',
   bgLight: '#F9FAFB',
   textMuted: '#6B7280',
+  error: '#EF4444',
+  errorBg: '#FEF2F2',
+  errorBorder: '#FECACA',
 };
 
 const ITEMS_PER_PAGE = 12;
@@ -36,11 +39,22 @@ export default function ProductsPage() {
     inStockOnly: false,
   });
 
-  useEffect(() => {
-    if (!hasLoaded) {
-      void loadProducts();
-    }
-  }, [hasLoaded, loadProducts]);
+  const { data, isLoading, isError, error, isFetching } = useProducts({
+    search,
+    category: filters.categories[0],
+    brand: filters.brands[0],
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
+    rating: filters.rating,
+    inStockOnly: filters.inStockOnly,
+    sort,
+    page,
+    limit: ITEMS_PER_PAGE,
+  });
+
+  const products = data?.products ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const total = data?.total ?? 0;
 
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -110,7 +124,6 @@ export default function ProductsPage() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         style={{ paddingTop: '24px', paddingBottom: '48px' }}
       >
-        {/* Breadcrumb */}
         <nav
           style={{
             display: 'flex',
@@ -128,7 +141,6 @@ export default function ProductsPage() {
           <span style={{ color: colors.secondary, fontWeight: 600 }}>All Products</span>
         </nav>
 
-        {/* Page header */}
         <div
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           style={{ marginBottom: '20px' }}
@@ -191,9 +203,11 @@ export default function ProductsPage() {
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => {
+                  setSearch('');
+                  setPage(1);
+                }}
                 aria-label="Clear search"
-                title="Clear search"
                 style={{
                   padding: '0 8px',
                   color: colors.textMuted,
@@ -216,8 +230,7 @@ export default function ProductsPage() {
             )}
             <button
               type="submit"
-              aria-label="Search products"
-              title="Search products"
+              aria-label="Search"
               style={{
                 padding: '9px 14px',
                 backgroundColor: colors.primary,
@@ -230,7 +243,7 @@ export default function ProductsPage() {
                 width="14"
                 height="14"
                 fill="none"
-                stroke={colors.white}
+                stroke="white"
                 strokeWidth="2.5"
                 viewBox="0 0 24 24"
               >
@@ -241,59 +254,6 @@ export default function ProductsPage() {
           </form>
         </div>
 
-        {/* Mobile search */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setPage(1);
-          }}
-          className="sm:hidden flex items-center rounded-md overflow-hidden mb-4"
-          style={{ border: `1.5px solid ${colors.border}`, backgroundColor: colors.white }}
-        >
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search products..."
-            style={{
-              flex: 1,
-              padding: '9px 14px',
-              fontSize: '13px',
-              color: colors.secondary,
-              border: 'none',
-              outline: 'none',
-            }}
-          />
-          <button
-            type="submit"
-            aria-label="Search products"
-            title="Search products"
-            style={{
-              padding: '9px 14px',
-              backgroundColor: colors.primary,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              fill="none"
-              stroke={colors.white}
-              strokeWidth="2.5"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
-            </svg>
-          </button>
-        </form>
-
-        {/* Category quick pills */}
         <div
           style={{
             display: 'flex',
@@ -352,16 +312,12 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        {/* Main layout */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-          {/* Sidebar — desktop */}
           <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
             <FilterSidebar filters={filters} onChange={handleFilterChange} />
           </div>
 
-          {/* Content */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Toolbar */}
             <div
               style={{
                 display: 'flex',
@@ -375,7 +331,6 @@ export default function ProductsPage() {
                 border: `1px solid ${colors.border}`,
               }}
             >
-              {/* Mobile filter btn */}
               <button
                 onClick={() => setMobileFiltersOpen(true)}
                 className="lg:hidden"
@@ -424,20 +379,17 @@ export default function ProductsPage() {
                   </span>
                 )}
               </button>
-
               <span
                 className="hidden lg:block"
                 style={{ fontSize: '12px', color: colors.textMuted }}
               >
-                Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
-                {Math.min(page * ITEMS_PER_PAGE, filteredProducts.length)} of{' '}
-                {filteredProducts.length}
+                {isFetching && !isLoading
+                  ? 'Updating...'
+                  : `Showing ${products.length} of ${total}`}
               </span>
-
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}
               >
-                {/* Sort */}
                 <SortSelect
                   value={sort}
                   onChange={(v) => {
@@ -445,8 +397,6 @@ export default function ProductsPage() {
                     setPage(1);
                   }}
                 />
-
-                {/* View toggle */}
                 <div
                   className="hidden sm:flex"
                   style={{
@@ -459,6 +409,7 @@ export default function ProductsPage() {
                     <button
                       key={v}
                       onClick={() => setView(v)}
+                      aria-label={`${v} view`}
                       style={{
                         width: '34px',
                         height: '34px',
@@ -470,7 +421,6 @@ export default function ProductsPage() {
                         border: 'none',
                         cursor: 'pointer',
                       }}
-                      aria-label={`${v} view`}
                     >
                       {v === 'grid' ? (
                         <svg
@@ -506,19 +456,31 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Product grid */}
-            {paginatedProducts.length === 0 ? (
+            {isLoading && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+
+            {isError && !isLoading && (
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '64px 24px',
+                  padding: '48px 24px',
                   textAlign: 'center',
-                  backgroundColor: colors.white,
+                  backgroundColor: colors.errorBg,
                   borderRadius: '12px',
-                  border: `1px dashed ${colors.border}`,
+                  border: `1px solid ${colors.errorBorder}`,
                 }}
               >
                 <svg
@@ -528,20 +490,58 @@ export default function ProductsPage() {
                   viewBox="0 0 24 24"
                   style={{ marginBottom: '16px' }}
                 >
-                  <circle cx="11" cy="11" r="8" stroke={colors.border} strokeWidth="1.5" />
+                  <circle cx="12" cy="12" r="10" stroke={colors.error} strokeWidth="1.5" />
                   <path
-                    d="M21 21l-4.35-4.35"
-                    stroke={colors.border}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M8 11h6M11 8v6"
-                    stroke={colors.primary}
-                    strokeWidth="1.5"
+                    d="M12 8v4M12 16h.01"
+                    stroke={colors.error}
+                    strokeWidth="2"
                     strokeLinecap="round"
                   />
                 </svg>
+                <h3
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: colors.secondary,
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  Failed to load products
+                </h3>
+                <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 16px 0' }}>
+                  {error?.message ?? 'Something went wrong.'}
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: colors.primary,
+                    color: colors.white,
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
+
+            {!isLoading && !isError && products.length === 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '64px 24px',
+                  textAlign: 'center',
+                  backgroundColor: colors.white,
+                  borderRadius: '12px',
+                  border: `1px dashed ${colors.border}`,
+                }}
+              >
                 <h3
                   style={{
                     fontSize: '16px',
@@ -556,7 +556,9 @@ export default function ProductsPage() {
                   Try adjusting your filters or search term
                 </p>
               </div>
-            ) : (
+            )}
+
+            {!isLoading && !isError && products.length > 0 && (
               <div
                 style={
                   view === 'grid'
@@ -568,26 +570,26 @@ export default function ProductsPage() {
                     : { display: 'flex', flexDirection: 'column', gap: '12px' }
                 }
               >
-                {paginatedProducts.map((product) => (
+                {products.map((product) => (
                   <ProductCard key={product.id} product={product} view={view} />
                 ))}
               </div>
             )}
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={(p) => {
-                setPage(p);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            />
+            {!isLoading && !isError && totalPages > 1 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setPage(p);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile filter drawer */}
       {mobileFiltersOpen && (
         <>
           <div
@@ -622,7 +624,6 @@ export default function ProductsPage() {
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-label="Close filters"
-                title="Close filters"
                 style={{
                   background: 'none',
                   border: 'none',

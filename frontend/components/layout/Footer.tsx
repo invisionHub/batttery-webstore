@@ -13,8 +13,8 @@ const colors = {
 };
 
 const shop = [
-  { label: 'Home Lighting', href: '/products?category=led-lighting&type=home' },
-  { label: 'Outdoor Lighting', href: '/products?category=led-lighting&type=outdoor' },
+  { label: 'Home Lighting', href: '/products?category=led-lighting' },
+  { label: 'Outdoor Lighting', href: '/products?category=led-lighting' },
   { label: 'Switches & Sockets', href: '/products?category=switches-sockets' },
   { label: 'Appliances', href: '/products?category=appliances' },
   { label: 'Cables & Wiring', href: '/products?category=electric-cables' },
@@ -105,16 +105,20 @@ const FooterCol = ({
       {title}
     </h4>
     <div
-      style={{
-        width: '28px',
-        height: '2px',
-        backgroundColor: colors.primary,
-        borderRadius: '1px',
-      }}
+      style={{ width: '28px', height: '2px', backgroundColor: colors.primary, borderRadius: '1px' }}
     />
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <ul
+      style={{
+        listStyle: 'none',
+        margin: 0,
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}
+    >
       {links.map((link) => (
-        <div key={link.label}>
+        <li key={`${link.href}-${link.label}`}>
           <Link
             href={link.href}
             style={{
@@ -123,18 +127,14 @@ const FooterCol = ({
               textDecoration: 'none',
               transition: 'color 0.15s',
             }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.color = colors.primary)
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.color = colors.textMuted)
-            }
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = colors.primary)}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = colors.textMuted)}
           >
             {link.label}
           </Link>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   </div>
 );
 
@@ -147,6 +147,7 @@ const Footer: React.FC = () => (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
         {/* Brand col */}
         <div className="lg:col-span-2 flex flex-col gap-4">
+          {/* Logo */}
           <Link
             href="/"
             style={{
@@ -170,7 +171,6 @@ const Footer: React.FC = () => (
               }}
             />
           </Link>
-
           <p
             style={{
               fontSize: '11px',
@@ -183,7 +183,6 @@ const Footer: React.FC = () => (
           >
             Light &amp; Plug Concept
           </p>
-
           <p
             style={{
               fontSize: '13px',
@@ -200,7 +199,7 @@ const Footer: React.FC = () => (
           {/* Socials */}
           <div className="flex items-center gap-2 mt-1">
             {socials.map((s) => (
-              <Link
+              <a
                 key={s.label}
                 href={s.href}
                 target="_blank"
@@ -209,17 +208,16 @@ const Footer: React.FC = () => (
                 className="flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200"
                 style={{ backgroundColor: colors.secondaryLight, color: colors.textMuted }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = colors.primary;
-                  (e.currentTarget as HTMLAnchorElement).style.color = colors.white;
+                  (e.currentTarget as HTMLElement).style.backgroundColor = colors.primary;
+                  (e.currentTarget as HTMLElement).style.color = colors.white;
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-                    colors.secondaryLight;
-                  (e.currentTarget as HTMLAnchorElement).style.color = colors.textMuted;
+                  (e.currentTarget as HTMLElement).style.backgroundColor = colors.secondaryLight;
+                  (e.currentTarget as HTMLElement).style.color = colors.textMuted;
                 }}
               >
                 {s.icon}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -243,11 +241,9 @@ const Footer: React.FC = () => (
               key={item}
               href="#"
               style={{ fontSize: '12px', color: colors.textMuted, textDecoration: 'none' }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.color = colors.primary)
-              }
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = colors.primary)}
               onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.color = colors.textMuted)
+                ((e.currentTarget as HTMLElement).style.color = colors.textMuted)
               }
             >
               {item}

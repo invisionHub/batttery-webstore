@@ -48,6 +48,7 @@ export async function fetchProductsFromDatabase(): Promise<ProductFetchResult> {
   try {
     const documents = await getAllProducts();
 
+    console.log(documents);
     const products = documents.map((product) => toCatalogProduct(product));
 
     console.info(`[products] Fetched ${products.length} products from the database.`);

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { mockCategories, mockBrands } from '@/lib/mock-data';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -25,9 +24,18 @@ export interface FilterState {
   inStockOnly: boolean;
 }
 
+interface FilterOption {
+  id: string;
+  name: string;
+  value: string;
+  count: number;
+}
+
 interface FilterSidebarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
+  categories?: FilterOption[];
+  brands?: FilterOption[];
   className?: string;
 }
 
@@ -152,7 +160,13 @@ const CheckItem = ({
 // ─────────────────────────────────────────
 // MAIN FILTER SIDEBAR
 // ─────────────────────────────────────────
-const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, className = '' }) => {
+const FilterSidebar: React.FC<FilterSidebarProps> = ({
+  filters,
+  onChange,
+  categories = [],
+  brands = [],
+  className = '',
+}) => {
   const [priceMin, setPriceMin] = useState(String(filters.priceMin));
   const [priceMax, setPriceMax] = useState(String(filters.priceMax));
 
@@ -240,13 +254,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
 
       {/* ── CATEGORY FILTER ── */}
       <FilterSection title="Category">
-        {mockCategories.map((cat) => (
+        {categories.map((cat) => (
           <CheckItem
             key={cat.id}
             label={cat.name}
-            checked={filters.categories.includes(cat.slug)}
-            count={cat.productCount}
-            onChange={() => toggleCategory(cat.slug)}
+            checked={filters.categories.includes(cat.value)}
+            count={cat.count}
+            onChange={() => toggleCategory(cat.value)}
           />
         ))}
       </FilterSection>
@@ -356,12 +370,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, classN
 
       {/* ── BRAND FILTER ── */}
       <FilterSection title="Brand">
-        {mockBrands.map((brand) => (
+        {brands.map((brand) => (
           <CheckItem
             key={brand.id}
             label={brand.name}
-            checked={filters.brands.includes(brand.slug)}
-            onChange={() => toggleBrand(brand.slug)}
+            checked={filters.brands.includes(brand.value)}
+            count={brand.count}
+            onChange={() => toggleBrand(brand.value)}
           />
         ))}
       </FilterSection>

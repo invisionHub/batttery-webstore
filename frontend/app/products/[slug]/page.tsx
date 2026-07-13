@@ -178,7 +178,7 @@ const ProductNotFound = () => (
     <p
       style={{ fontSize: '14px', color: colors.textMuted, margin: '0 0 20px 0', maxWidth: '360px' }}
     >
-      We couldn't find the product you're looking for.
+      We couldn&#39;t find any products.
     </p>
     <Link
       href="/products"
@@ -209,7 +209,6 @@ export default function ProductDetailPage() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         style={{ paddingTop: '20px', paddingBottom: '56px' }}
       >
-        {/* Breadcrumb */}
         <nav
           style={{
             display: 'flex',

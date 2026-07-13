@@ -35,12 +35,13 @@ async function withMongoContext<T>(
     await client.connect();
 
     const db = getMongoDb(client);
-
-    return handler({
+    const result = await handler({
       products: getProductsCollection(db),
       orders: getOrdersCollection(db),
       orderItems: getOrderItemsCollection(db),
     });
+
+    return result;
   } finally {
     await client.close();
   }

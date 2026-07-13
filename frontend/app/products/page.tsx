@@ -1,13 +1,14 @@
 ﻿'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { mockCategories } from '@/lib/mock-data';
+import { type Product } from '@/lib/mock-data';
 import FilterSidebar, { type FilterState } from '@/components/product/FilterSidebar';
 import SortSelect from '@/components/ui/SortSelect';
 import Pagination from '@/components/ui/Pagination';
 import ProductCard from '@/components/product/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/skeleton';
+import { fetchProductsFromDatabase } from '@/features/products/actions/get-products';
 
 const colors = {
   primary: '#22C55E',
@@ -24,7 +25,9 @@ const colors = {
 const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPage() {
-  const { products, loading, error, hasLoaded, loadProducts } = useProductStore();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('popular');
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -39,22 +42,90 @@ export default function ProductsPage() {
     inStockOnly: false,
   });
 
-  const { data, isLoading, isError, error, isFetching } = useProducts({
-    search,
-    category: filters.categories[0],
-    brand: filters.brands[0],
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax,
-    rating: filters.rating,
-    inStockOnly: filters.inStockOnly,
-    sort,
-    page,
-    limit: ITEMS_PER_PAGE,
-  });
+  const normalizeValue = (value: string | undefined | null) => (value ?? '').trim().toLowerCase();
 
-  const products = data?.products ?? [];
-  const totalPages = data?.totalPages ?? 1;
-  const total = data?.total ?? 0;
+  const categoryOptions = useMemo(() => {
+    const counts = new Map<string, { name: string; count: number }>();
+
+    products.forEach((product) => {
+      const category = product.category?.trim();
+      if (!category) return;
+
+      const key = normalizeValue(category);
+      const existing = counts.get(key);
+      counts.set(key, {
+        name: category,
+        count: (existing?.count ?? 0) + 1,
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value], index) => ({
+        id: `${key}-${index}`,
+        name: value.name,
+        value: value.name,
+        count: value.count,
+      }));
+  }, [products]);
+
+  const brandOptions = useMemo(() => {
+    const counts = new Map<string, { name: string; count: number }>();
+
+    products.forEach((product) => {
+      const brand = product.brand?.trim();
+      if (!brand) return;
+
+      const key = normalizeValue(brand);
+      const existing = counts.get(key);
+      counts.set(key, {
+        name: brand,
+        count: (existing?.count ?? 0) + 1,
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value], index) => ({
+        id: `${key}-${index}`,
+        name: value.name,
+        value: value.name,
+        count: value.count,
+      }));
+  }, [products]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProducts = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const result = await fetchProductsFromDatabase();
+
+        if (!isActive) return;
+
+        setProducts(result.products ?? []);
+        setLoadError(result.error);
+      } catch (error) {
+        if (!isActive) return;
+
+        setProducts([]);
+        setLoadError(error instanceof Error ? error.message : 'Failed to load products');
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadProducts();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -70,20 +141,34 @@ export default function ProductsPage() {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q)
+          p.brand.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
       );
     }
 
-    if (filters.categories.length > 0)
-      result = result.filter((p) => filters.categories.includes(p.category));
+    if (filters.categories.length > 0) {
+      result = result.filter((p) =>
+        filters.categories.some(
+          (category) => normalizeValue(category) === normalizeValue(p.category)
+        )
+      );
+    }
 
-    if (filters.brands.length > 0) result = result.filter((p) => filters.brands.includes(p.brand));
+    if (filters.brands.length > 0) {
+      result = result.filter((p) =>
+        filters.brands.some((brand) => normalizeValue(brand) === normalizeValue(p.brand))
+      );
+    }
 
     result = result.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
 
-    if (filters.rating !== null) result = result.filter((p) => p.rating >= filters.rating!);
+    if (filters.rating !== null) {
+      result = result.filter((p) => p.rating >= filters.rating!);
+    }
 
-    if (filters.inStockOnly) result = result.filter((p) => p.inStock);
+    if (filters.inStockOnly) {
+      result = result.filter((p) => p.inStock);
+    }
 
     switch (sort) {
       case 'price-asc':
@@ -104,9 +189,39 @@ export default function ProductsPage() {
     }
 
     return result;
-  }, [search, filters, sort]);
+  }, [filters, products, search, sort]);
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const clearSearch = () => {
+    setSearch('');
+    setPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    setPage(1);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setFilters({
+      ...filters,
+      categories: [category],
+    });
+    setPage(1);
+  };
+
+  const handleAllCategories = () => {
+    setFilters({
+      ...filters,
+      categories: [],
+    });
+    setPage(1);
+  };
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const paginatedProducts = filteredProducts.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
@@ -154,7 +269,7 @@ export default function ProductsPage() {
             </p>
           </div>
 
-          {error && (
+          {loadError && (
             <div
               style={{
                 marginBottom: '16px',
@@ -165,11 +280,10 @@ export default function ProductsPage() {
                 fontSize: '13px',
               }}
             >
-              {error}
+              {loadError}
             </div>
           )}
 
-          {/* Search — desktop */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -186,8 +300,7 @@ export default function ProductsPage() {
               type="text"
               value={search}
               onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
+                handleSearchChange(e.target.value);
               }}
               placeholder="Search products..."
               style={{
@@ -203,10 +316,7 @@ export default function ProductsPage() {
             {search && (
               <button
                 type="button"
-                onClick={() => {
-                  setSearch('');
-                  setPage(1);
-                }}
+                onClick={clearSearch}
                 aria-label="Clear search"
                 style={{
                   padding: '0 8px',
@@ -264,10 +374,7 @@ export default function ProductsPage() {
           }}
         >
           <button
-            onClick={() => {
-              setFilters({ ...filters, categories: [] });
-              setPage(1);
-            }}
+            onClick={handleAllCategories}
             style={{
               flexShrink: 0,
               padding: '6px 16px',
@@ -283,12 +390,15 @@ export default function ProductsPage() {
           >
             All
           </button>
-          {mockCategories.map((cat) => (
+          {categoryOptions.map((cat) => (
             <button
               key={cat.id}
               onClick={() => {
-                setFilters({ ...filters, categories: [cat.slug] });
-                setPage(1);
+                if (filters.categories.includes(cat.value)) {
+                  handleAllCategories();
+                } else {
+                  handleCategorySelect(cat.value);
+                }
               }}
               style={{
                 flexShrink: 0,
@@ -298,11 +408,11 @@ export default function ProductsPage() {
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
-                backgroundColor: filters.categories.includes(cat.slug)
+                backgroundColor: filters.categories.includes(cat.value)
                   ? colors.primary
                   : colors.white,
-                color: filters.categories.includes(cat.slug) ? colors.white : colors.textMuted,
-                outline: filters.categories.includes(cat.slug)
+                color: filters.categories.includes(cat.value) ? colors.white : colors.textMuted,
+                outline: filters.categories.includes(cat.value)
                   ? 'none'
                   : `1px solid ${colors.border}`,
               }}
@@ -314,7 +424,12 @@ export default function ProductsPage() {
 
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
           <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
-            <FilterSidebar filters={filters} onChange={handleFilterChange} />
+            <FilterSidebar
+              filters={filters}
+              onChange={handleFilterChange}
+              categories={categoryOptions}
+              brands={brandOptions}
+            />
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -383,20 +498,14 @@ export default function ProductsPage() {
                 className="hidden lg:block"
                 style={{ fontSize: '12px', color: colors.textMuted }}
               >
-                {isFetching && !isLoading
-                  ? 'Updating...'
-                  : `Showing ${products.length} of ${total}`}
+                {loading
+                  ? 'Loading...'
+                  : `Showing ${paginatedProducts.length} of ${filteredProducts.length}`}
               </span>
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}
               >
-                <SortSelect
-                  value={sort}
-                  onChange={(v) => {
-                    setSort(v);
-                    setPage(1);
-                  }}
-                />
+                <SortSelect value={sort} onChange={handleSortChange} />
                 <div
                   className="hidden sm:flex"
                   style={{
@@ -456,7 +565,7 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {isLoading && (
+            {loading && (
               <div
                 style={{
                   display: 'grid',
@@ -470,7 +579,7 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {isError && !isLoading && (
+            {loadError && !loading && (
               <div
                 style={{
                   display: 'flex',
@@ -509,7 +618,7 @@ export default function ProductsPage() {
                   Failed to load products
                 </h3>
                 <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 16px 0' }}>
-                  {error?.message ?? 'Something went wrong.'}
+                  {loadError}
                 </p>
                 <button
                   onClick={() => window.location.reload()}
@@ -529,7 +638,7 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {!isLoading && !isError && products.length === 0 && (
+            {!loading && !loadError && filteredProducts.length === 0 && (
               <div
                 style={{
                   display: 'flex',
@@ -558,7 +667,7 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {!isLoading && !isError && products.length > 0 && (
+            {!loading && !loadError && filteredProducts.length > 0 && (
               <div
                 style={
                   view === 'grid'
@@ -570,13 +679,13 @@ export default function ProductsPage() {
                     : { display: 'flex', flexDirection: 'column', gap: '12px' }
                 }
               >
-                {products.map((product) => (
+                {paginatedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} view={view} />
                 ))}
               </div>
             )}
 
-            {!isLoading && !isError && totalPages > 1 && (
+            {!loading && !loadError && totalPages > 1 && (
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
@@ -649,6 +758,8 @@ export default function ProductsPage() {
                 handleFilterChange(f);
                 setMobileFiltersOpen(false);
               }}
+              categories={categoryOptions}
+              brands={brandOptions}
             />
           </div>
         </>

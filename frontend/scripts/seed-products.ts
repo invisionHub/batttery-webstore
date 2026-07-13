@@ -1,6 +1,9 @@
 import { importProducts } from '../features/products/import/importer';
 import { seedProductsToMongo } from '../lib/mongodb';
 import type { Product } from '../features/products/types/product.type';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function main() {
   const importResult = await importProducts();

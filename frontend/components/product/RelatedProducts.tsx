@@ -8,7 +8,7 @@ import { mockProducts, formatPrice, type Product } from '@/lib/mock-data';
 // BRAND COLORS — change these to update theme
 // ============================================
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   primaryHover: '#16A34A',
   secondary: '#0D1B2A',
   white: '#FFFFFF',

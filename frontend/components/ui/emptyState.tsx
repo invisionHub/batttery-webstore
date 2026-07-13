@@ -5,7 +5,7 @@ import Button from './Button';
 // BRAND COLORS — change these to update theme
 // ============================================
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   textMuted: '#6B7280',
   border: '#E5E7EB',

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { mockCategories } from '@/lib/mock-data';
 
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   white: '#FFFFFF',
   border: '#E5E7EB',

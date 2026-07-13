@@ -6,7 +6,7 @@ import { ProductCardSkeleton } from '../ui/skeleton';
 // BRAND COLORS — change these to update theme
 // ============================================
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   border: '#E5E7EB',
   textMuted: '#6B7280',

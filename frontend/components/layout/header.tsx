@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
 import CartDrawer from '@/components/cart/CartDrawer';
+import Image from 'next/image';
 
 const colors = {
-  primary: '#22C55E',
-  primaryHover: '#16A34A',
+  primary: '#CC0000',
+  primaryHover: '#A30000',
   secondary: '#0D1B2A',
   white: '#FFFFFF',
   border: '#E5E7EB',
@@ -30,43 +31,18 @@ const categoryLinks = [
 const Logo = () => (
   <Link
     href="/"
-    style={{
-      textDecoration: 'none',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1px',
-      flexShrink: 0,
-    }}
+    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}
   >
-    <span
-      style={{
-        fontSize: '22px',
-        fontWeight: 900,
-        color: colors.secondary,
-        letterSpacing: '-0.02em',
-      }}
-    >
-      Jav
-    </span>
-    <span
-      style={{ fontSize: '22px', fontWeight: 900, color: colors.primary, letterSpacing: '-0.02em' }}
-    >
-      aL
-    </span>
-    <span
-      style={{
-        width: '5px',
-        height: '5px',
-        borderRadius: '50%',
-        backgroundColor: colors.primary,
-        marginBottom: '10px',
-        marginLeft: '-1px',
-        display: 'inline-block',
-      }}
+    <Image
+      src="/images/logo.png"
+      alt="Java Lights & Plugs Concepts"
+      width={140}
+      height={45}
+      style={{ objectFit: 'contain' }}
+      priority
     />
   </Link>
 );
-
 const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -78,15 +54,14 @@ const Header: React.FC = () => {
   const { openCartDrawer } = useUIStore();
 
   useEffect(() => {
-    // Defer setting mounted to avoid synchronous setState inside effect
-    const raf = requestAnimationFrame(() => setHasMounted(true));
+    // Run after mount to avoid sync state updates during effect setup.
+    queueMicrotask(() => setHasMounted(true));
 
     const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+
     window.addEventListener('scroll', onScroll);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', onScroll);
-    };
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   return (
@@ -110,11 +85,11 @@ const Header: React.FC = () => {
             letterSpacing: '0.05em',
           }}
         >
-          • FREE DELIVERY ON ORDERS ABOVE ₦50,000 &nbsp;&nbsp;&nbsp; • QUALITY &nbsp;&nbsp;&nbsp; •
-          SAFETY &nbsp;&nbsp;&nbsp; • RELIABILITY &nbsp;&nbsp;&nbsp; • SHOP NOW →
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; • FREE DELIVERY
-          ON ORDERS ABOVE ₦50,000 &nbsp;&nbsp;&nbsp; • QUALITY &nbsp;&nbsp;&nbsp; • SAFETY
-          &nbsp;&nbsp;&nbsp; • RELIABILITY &nbsp;&nbsp;&nbsp; • SHOP NOW →
+          FREE DELIVERY ON ORDERS ABOVE N50,000 &nbsp;&nbsp;&nbsp; QUALITY &nbsp;&nbsp;&nbsp; SAFETY
+          &nbsp;&nbsp;&nbsp; RELIABILITY &nbsp;&nbsp;&nbsp; SHOP NOW
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FREE DELIVERY ON
+          ORDERS ABOVE N50,000 &nbsp;&nbsp;&nbsp; QUALITY &nbsp;&nbsp;&nbsp; SAFETY
+          &nbsp;&nbsp;&nbsp; RELIABILITY &nbsp;&nbsp;&nbsp; SHOP NOW
         </div>
         <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
       </div>
@@ -131,10 +106,8 @@ const Header: React.FC = () => {
           transition: 'box-shadow 0.2s',
         }}
       >
-        {/* Top row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4" style={{ height: '64px' }}>
-            {/* Hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden flex flex-col gap-1.5"
@@ -156,14 +129,13 @@ const Header: React.FC = () => {
 
             <Logo />
 
-            {/* Search */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 if (search.trim())
                   window.location.href = `/products?search=${encodeURIComponent(search)}`;
               }}
-              className="flex-1 hidden sm:flex items-center ml-90  rounded-3xl overflow-hidden"
+              className="flex-1 hidden sm:flex items-center ml-90 rounded-md overflow-hidden"
               style={{ border: `1.5px solid ${colors.border}`, maxWidth: '480px' }}
             >
               <input
@@ -171,7 +143,7 @@ const Header: React.FC = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search for products, brands, categories..."
-                className="flex-1 focus:outline-none text-sm px-4 py-2.5"
+                className="flex-1 focus:outline-none text-sm  px-4 py-2.5"
                 style={{ color: colors.secondary, backgroundColor: colors.white }}
               />
               <button
@@ -184,9 +156,7 @@ const Header: React.FC = () => {
               </button>
             </form>
 
-            {/* Right actions */}
             <div className="flex items-center gap-3 ml-auto">
-              {/* Wishlist */}
               <Link
                 href="/wishlist"
                 aria-label="Wishlist"
@@ -204,7 +174,6 @@ const Header: React.FC = () => {
                 </svg>
               </Link>
 
-              {/* Account */}
               <Link
                 href="/account"
                 aria-label="Account"
@@ -227,7 +196,6 @@ const Header: React.FC = () => {
                 </svg>
               </Link>
 
-              {/* Cart */}
               <button
                 onClick={openCartDrawer}
                 aria-label="Open cart"
@@ -282,7 +250,6 @@ const Header: React.FC = () => {
                 )}
               </button>
 
-              {/* Sign In */}
               {/* <Link
                 href="/auth/signin"
                 className="hidden md:inline-flex items-center rounded-md font-semibold text-sm"
@@ -294,10 +261,9 @@ const Header: React.FC = () => {
                 }}
               >
                 Sign In
-              </Link> */}
+              </Link>
 
-              {/* Trade account */}
-              {/* <Link
+              <Link
                 href="/trade-account"
                 className="hidden lg:inline-flex items-center rounded-md font-semibold text-sm"
                 style={{
@@ -313,7 +279,6 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Category Nav Row */}
         <div style={{ borderTop: `1px solid ${colors.border}`, backgroundColor: colors.white }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
@@ -360,7 +325,6 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile Drawer */}
       {mobileOpen && (
         <>
           <div
@@ -500,7 +464,6 @@ const Header: React.FC = () => {
         </>
       )}
 
-      {/* Cart Drawer */}
       <CartDrawer />
     </>
   );

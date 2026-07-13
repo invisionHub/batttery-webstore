@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { ProductCardSkeleton } from '@/components/ui/skeleton';
 import { fetchProductsFromDatabase } from '@/features/products/actions/get-products';
 
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   white: '#FFFFFF',
   border: '#E5E7EB',

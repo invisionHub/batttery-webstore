@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   primaryHover: '#16A34A',
   secondary: '#0D1B2A',
   white: '#FFFFFF',
@@ -128,69 +129,23 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT — JL Logo Mark */}
-          <div className="flex-shrink-0">
+          {/* RIGHT — Brand logo */}
+          <div className="flex-shrink-0 flex items-center justify-center">
             <div
-              className="flex items-center justify-center relative rounded-2xl"
               style={{
-                width: '240px',
-                height: '240px',
-                backgroundColor: '#0F2337',
-                border: `2px solid ${colors.primary}`,
-                boxShadow: `0 0 40px rgba(34,197,94,0.15)`,
+                width: '360px',
+                padding: '56px 40px',
+                borderRadius: '16px',
+                backgroundColor: colors.white,
               }}
             >
-              {/* Glow */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '16px',
-                  background: `radial-gradient(circle at 30% 30%, rgba(34,197,94,0.12), transparent 60%)`,
-                }}
+              <Image
+                src="/images/logo.png"
+                alt="Java Lights & Plugs Concepts"
+                width={360}
+                height={150}
+                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
               />
-              {/* Plug pins */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                }}
-              >
-                {[0, 1].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: '5px',
-                      height: '18px',
-                      borderRadius: '3px',
-                      backgroundColor: colors.primary,
-                      opacity: 0.7,
-                    }}
-                  />
-                ))}
-              </div>
-              {/* JL text */}
-              <div className="flex items-end gap-1 relative z-10">
-                <span
-                  style={{ fontSize: '72px', fontWeight: 900, color: colors.white, lineHeight: 1 }}
-                >
-                  J
-                </span>
-                <span
-                  style={{
-                    fontSize: '72px',
-                    fontWeight: 900,
-                    color: colors.primary,
-                    lineHeight: 1,
-                  }}
-                >
-                  L
-                </span>
-              </div>
             </div>
           </div>
         </div>

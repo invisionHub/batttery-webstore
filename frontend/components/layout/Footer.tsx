@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   secondaryLight: '#1E3448',
   white: '#FFFFFF',

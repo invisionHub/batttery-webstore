@@ -4,7 +4,7 @@ import React from 'react';
 // BRAND COLORS — change these to update theme
 // ============================================
 const colors = {
-  primary: '#22C55E',
+  primary: '#CC0000',
   secondary: '#0D1B2A',
   white: '#FFFFFF',
 };

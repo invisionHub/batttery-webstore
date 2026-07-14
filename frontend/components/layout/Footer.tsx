@@ -28,6 +28,7 @@ const company = [
 ];
 
 const customerCare = [
+  { label: 'Contact Us', href: '/contact' },
   { label: 'Help Centre', href: '/help' },
   { label: 'Shipping Info', href: '/shipping' },
   { label: 'Returns & Refunds', href: '/returns' },

@@ -54,8 +54,9 @@ const Header: React.FC = () => {
   const { openCartDrawer } = useUIStore();
 
   useEffect(() => {
-    // Run after mount to avoid sync state updates during effect setup.
-    queueMicrotask(() => setHasMounted(true));
+    // Avoid synchronous state updates in the effect body.
+    // Using a microtask ensures this runs after the current call stack.
+    void Promise.resolve().then(() => setHasMounted(true));
 
     const onScroll = () => setScrolled(window.scrollY > 10);
     onScroll();

@@ -3,11 +3,17 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  checkoutSchema,
+  checkoutDefaultValues,
+  type CheckoutFormData,
+} from '@/schemas/checkoutSchema';
 import { useCartStore } from '@/store/cartStore';
-import CheckoutForm, { type CheckoutFormData } from '@/components/checkOut/CheckoutForm';
-import OrderSummary from '@/components/checkOut/OrderSummary';
-import PaymentButton from '@/components/checkOut/PaymentButton';
-import { formatPrice } from '@/lib/mock-data';
+import CheckoutForm from '@/components/checkout/CheckoutForm';
+import OrderSummary from '@/components/checkout/OrderSummary';
+import PaymentButton from '@/components/checkout/PaymentButton';
 
 const colors = {
   primary: '#CC0000',
@@ -16,74 +22,39 @@ const colors = {
   border: '#E5E7EB',
   bgLight: '#F9FAFB',
   textMuted: '#6B7280',
+  error: '#EF4444',
 };
 
-const VAT_RATE = 0.075;
-const SHIPPING_FEES: Record<string, number> = { standard: 3500, express: 7000, pickup: 0 };
-
+const VAT = 0.075;
+const SHIPPING: Record<string, number> = { standard: 3500, express: 7000, pickup: 0 };
 const steps = ['Cart', 'Checkout', 'Confirmation'];
-
-// ── Validation ──
-function validate(data: CheckoutFormData): Partial<Record<keyof CheckoutFormData, string>> {
-  const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
-  if (!data.firstName.trim()) errors.firstName = 'First name is required';
-  if (!data.lastName.trim()) errors.lastName = 'Last name is required';
-  if (!data.email.trim()) errors.email = 'Email is required';
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.email = 'Invalid email address';
-  if (!data.phone.trim()) errors.phone = 'Phone number is required';
-  if (!data.address.trim()) errors.address = 'Address is required';
-  if (!data.city.trim()) errors.city = 'City is required';
-  if (!data.state) errors.state = 'Please select a state';
-  return errors;
-}
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, calculateTotals, clearCart } = useCartStore();
-  const { subtotal, discount } = calculateTotals();
-
-  const [formData, setFormData] = useState<CheckoutFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    deliveryMethod: 'standard',
-    paymentMethod: 'paystack',
-    notes: '',
-  });
-
-  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
+  const { subtotal } = calculateTotals();
   const [isLoading, setIsLoading] = useState(false);
 
-  const shipping = subtotal >= 50000 ? 0 : (SHIPPING_FEES[formData.deliveryMethod] ?? 3500);
-  const vat = Math.round(subtotal * VAT_RATE);
-  const total = subtotal + shipping + vat;
+  const methods = useForm<CheckoutFormData>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: checkoutDefaultValues,
+    mode: 'onBlur',
+  });
 
-  const handleChange = (field: keyof CheckoutFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
+  const deliveryMethod = methods.watch('deliveryMethod');
+  const paymentMethod = methods.watch('paymentMethod');
+  const shipping =
+    deliveryMethod === 'pickup' ? 0 : subtotal >= 50000 ? 0 : (SHIPPING[deliveryMethod] ?? 3500);
+  const total = subtotal + shipping + Math.round(subtotal * VAT);
 
-  const handleSubmit = () => {
-    const newErrors = validate(formData);
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
+  const onSubmit = methods.handleSubmit(() => {
     setIsLoading(true);
-    // Simulate API call — replace with real payment in Week 5
     setTimeout(() => {
       clearCart();
       router.push('/checkout/success');
     }, 2000);
-  };
+  });
 
-  // Empty cart redirect
   if (items.length === 0) {
     return (
       <div
@@ -95,13 +66,13 @@ export default function CheckoutPage() {
           justifyContent: 'center',
         }}
       >
-        <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div style={{ textAlign: 'center' }}>
           <p
             style={{
               fontSize: '18px',
               fontWeight: 700,
               color: colors.secondary,
-              margin: '0 0 16px 0',
+              marginBottom: '16px',
             }}
           >
             Your cart is empty
@@ -135,7 +106,6 @@ export default function CheckoutPage() {
         <nav
           style={{
             display: 'flex',
-            alignItems: 'center',
             gap: '6px',
             fontSize: '12px',
             color: colors.textMuted,
@@ -159,7 +129,6 @@ export default function CheckoutPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '0',
             marginBottom: '28px',
           }}
         >
@@ -201,8 +170,8 @@ export default function CheckoutPage() {
               </div>
               {i < steps.length - 1 && (
                 <div
+                  className="w-8 sm:w-16"
                   style={{
-                    width: '60px',
                     height: '2px',
                     backgroundColor: i === 0 ? colors.primary : colors.border,
                     margin: '0 4px 16px 4px',
@@ -213,47 +182,47 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        {/* Main layout */}
-        <div
-          className="grid grid-cols-1 lg:grid-cols-3"
-          style={{ gap: '24px', alignItems: 'flex-start' }}
-        >
-          {/* Form — takes 2/3 */}
+        {/* Validation error summary */}
+        {Object.keys(methods.formState.errors).length > 0 && (
           <div
-            className="lg:col-span-2"
-            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            style={{
+              padding: '12px 16px',
+              backgroundColor: '#FEF2F2',
+              borderRadius: '8px',
+              border: '1px solid #FECACA',
+              marginBottom: '16px',
+            }}
           >
-            {Object.keys(errors).length > 0 && (
-              <div
-                style={{
-                  padding: '12px 16px',
-                  backgroundColor: '#FEF2F2',
-                  borderRadius: '8px',
-                  border: '1px solid #FECACA',
-                }}
-              >
-                <p style={{ fontSize: '13px', color: '#EF4444', margin: 0, fontWeight: 600 }}>
-                  Please fix the errors below before continuing.
-                </p>
-              </div>
-            )}
-
-            <CheckoutForm data={formData} errors={errors} onChange={handleChange} />
-
-            <PaymentButton
-              isLoading={isLoading}
-              isDisabled={items.length === 0}
-              total={total}
-              paymentMethod={formData.paymentMethod}
-              onSubmit={handleSubmit}
-            />
+            <p style={{ fontSize: '13px', color: colors.error, margin: 0, fontWeight: 600 }}>
+              Please fix the errors below before continuing.
+            </p>
           </div>
+        )}
 
-          {/* Order summary — 1/3, sticky */}
-          <div>
-            <OrderSummary deliveryMethod={formData.deliveryMethod} />
+        {/* Main layout */}
+        <FormProvider {...methods}>
+          <div
+            className="grid grid-cols-1 lg:grid-cols-3"
+            style={{ gap: '24px', alignItems: 'flex-start' }}
+          >
+            <div
+              className="lg:col-span-2"
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              <CheckoutForm />
+              <PaymentButton
+                isLoading={isLoading}
+                isDisabled={items.length === 0}
+                total={total}
+                paymentMethod={paymentMethod}
+                onSubmit={onSubmit}
+              />
+            </div>
+            <div>
+              <OrderSummary deliveryMethod={deliveryMethod} />
+            </div>
           </div>
-        </div>
+        </FormProvider>
       </div>
     </div>
   );

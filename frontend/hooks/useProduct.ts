@@ -1,31 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchProductBySlug, fetchRelatedProducts } from '@/lib/api';
+import { fetchRelatedProducts } from '@/lib/api';
 import { queryKeys } from '@/lib/queryClient';
 import type { Product } from '@/lib/mock-data';
+import { fetchProductBySlug } from '@/features/products/actions/get-products';
 
 // ============================================
 // useProduct — single product detail hook
 // Used on: /products/[slug] page
 // ============================================
 export function useProduct(slug: string) {
-  return useQuery<Product | null, Error>({
-    queryKey: queryKeys.products.detail(slug),
-    queryFn: () => fetchProductBySlug(slug),
+  return useQuery({
+    queryKey: ['product', slug],
+    queryFn: async () => {
+      const result = await fetchProductBySlug(slug);
 
-    // Only run if slug is provided
-    enabled: Boolean(slug),
+      if (result.error) {
+        throw new Error(result.error);
+      }
 
-    // Product details stay fresh for 3 minutes
-    staleTime: 1000 * 60 * 3,
-
-    // Keep in cache for 15 minutes
-    gcTime: 1000 * 60 * 15,
-
-    // Don't retry if product is not found (null response)
-    retry: (failureCount, error) => {
-      if (error.message === 'Product not found') return false;
-      return failureCount < 2;
+      return result.product;
     },
+    enabled: !!slug,
   });
 }
 

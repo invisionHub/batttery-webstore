@@ -1,12 +1,18 @@
 'use server';
 
 import type { Product as CatalogProduct } from '@/lib/mock-data';
-import { getAllProducts } from '@/lib/repository';
+import { getAllProducts, getProductBySlug } from '@/lib/repository';
 import type { ProductRecord } from '@/lib/repository';
 import type { Product as ProductEntity } from '@/features/products/types/product.type';
+import { WithId } from 'mongodb';
 
 export type ProductFetchResult = {
   products: CatalogProduct[];
+  error: string | null;
+};
+
+export type ProductBySlugResult = {
+  product: CatalogProduct | null;
   error: string | null;
 };
 
@@ -48,10 +54,7 @@ export async function fetchProductsFromDatabase(): Promise<ProductFetchResult> {
   try {
     const documents = await getAllProducts();
 
-    console.log(documents);
     const products = documents.map((product) => toCatalogProduct(product));
-
-    console.info(`[products] Fetched ${products.length} products from the database.`);
 
     return {
       products,
@@ -65,6 +68,37 @@ export async function fetchProductsFromDatabase(): Promise<ProductFetchResult> {
 
     return {
       products: [],
+      error: message,
+    };
+  }
+}
+
+export async function fetchProductBySlug(slug: string): Promise<ProductBySlugResult> {
+  try {
+    const documents = await getProductBySlug(slug);
+
+    if (!documents) {
+      return {
+        product: null,
+        error: 'Product not found.',
+      };
+    }
+
+    const product = toCatalogProduct(documents);
+
+    console.info(`[products] Fetched product with slug: ${slug}`);
+
+    return {
+      product,
+      error: null,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch product.';
+
+    console.error('[products] Failed to load product:', message);
+
+    return {
+      product: null,
       error: message,
     };
   }

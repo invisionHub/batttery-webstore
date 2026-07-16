@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { type Product, formatPrice } from '@/lib/mock-data';
+import { useCartStore } from '@/store/cartStore';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -116,12 +117,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
+  const addProduct = useCartStore((state) => state.addProduct);
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    addProduct(product, 1);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
-
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { mockCategories } from '@/lib/mock-data';
+import Image from 'next/image';
 
 const colors = {
   primary: '#CC0000',
@@ -25,21 +26,13 @@ const CategoryCard = ({
     style={{ height: `${height}px`, backgroundColor: colors.bgLight }}
   >
     {/* Placeholder bg */}
-    <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ backgroundColor: '#E8EAED' }}
-    >
-      <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="18" height="18" rx="2" stroke={colors.border} strokeWidth="1.5" />
-        <circle cx="8.5" cy="8.5" r="1.5" stroke={colors.textMuted} strokeWidth="1.5" />
-        <path
-          d="M21 15l-5-5L5 21"
-          stroke={colors.textMuted}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
+    <Image
+      src={category.image}
+      alt={category.name}
+      fill
+      style={{ objectFit: 'cover' }}
+      className="absolute inset-0"
+    />
 
     {/* Overlay */}
     <div

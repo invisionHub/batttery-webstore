@@ -1,7 +1,12 @@
 'use client';
 
 import React from 'react';
+import { useFormContext } from 'react-hook-form';
+import type { CheckoutFormData } from '@/schemas/checkoutSchema';
 
+// ============================================
+// BRAND COLORS — change these to update theme
+// ============================================
 const colors = {
   primary: '#CC0000',
   secondary: '#0D1B2A',
@@ -10,26 +15,8 @@ const colors = {
   bgLight: '#F9FAFB',
   textMuted: '#6B7280',
   error: '#EF4444',
+  errorBg: '#FEF2F2',
 };
-
-export interface CheckoutFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  deliveryMethod: 'standard' | 'express' | 'pickup';
-  paymentMethod: 'card' | 'transfer' | 'paystack';
-  notes: string;
-}
-
-interface CheckoutFormProps {
-  data: CheckoutFormData;
-  errors: Partial<Record<keyof CheckoutFormData, string>>;
-  onChange: (field: keyof CheckoutFormData, value: string) => void;
-}
 
 const nigerianStates = [
   'Abia',
@@ -71,37 +58,9 @@ const nigerianStates = [
   'Zamfara',
 ];
 
-const inputStyle = (hasError: boolean): React.CSSProperties => ({
-  width: '100%',
-  padding: '10px 12px',
-  fontSize: '13px',
-  border: `1px solid ${hasError ? colors.error : colors.border}`,
-  borderRadius: '8px',
-  color: colors.secondary,
-  outline: 'none',
-  backgroundColor: colors.white,
-  boxSizing: 'border-box',
-});
-
-const labelStyle: React.CSSProperties = {
-  fontSize: '12px',
-  fontWeight: 600,
-  color: colors.secondary,
-  display: 'block',
-  marginBottom: '6px',
-};
-
-const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ marginBottom: '16px' }}>
-    <h3 style={{ fontSize: '15px', fontWeight: 800, color: colors.secondary, margin: '0 0 6px 0' }}>
-      {children}
-    </h3>
-    <div
-      style={{ height: '2px', width: '32px', backgroundColor: colors.primary, borderRadius: '1px' }}
-    />
-  </div>
-);
-
+// ─────────────────────────────────────────
+// REUSABLE FIELD WRAPPER
+// ─────────────────────────────────────────
 const Field = ({
   label,
   error,
@@ -114,18 +73,88 @@ const Field = ({
   children: React.ReactNode;
 }) => (
   <div>
-    <label style={labelStyle}>
+    <label
+      style={{
+        fontSize: '12px',
+        fontWeight: 600,
+        color: colors.secondary,
+        display: 'block',
+        marginBottom: '6px',
+      }}
+    >
       {label}
       {required && <span style={{ color: colors.primary, marginLeft: '3px' }}>*</span>}
     </label>
     {children}
-    {error && <p style={{ fontSize: '11px', color: colors.error, margin: '4px 0 0 0' }}>{error}</p>}
+    {error && (
+      <p
+        style={{
+          fontSize: '11px',
+          color: colors.error,
+          margin: '4px 0 0 0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+        }}
+      >
+        <svg width="11" height="11" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clipRule="evenodd"
+          />
+        </svg>
+        {error}
+      </p>
+    )}
   </div>
 );
 
-const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) => {
+// ─────────────────────────────────────────
+// INPUT STYLE HELPER
+// ─────────────────────────────────────────
+const inputStyle = (hasError: boolean): React.CSSProperties => ({
+  width: '100%',
+  padding: '10px 12px',
+  fontSize: '13px',
+  border: `1px solid ${hasError ? colors.error : colors.border}`,
+  borderRadius: '8px',
+  color: colors.secondary,
+  outline: 'none',
+  backgroundColor: colors.white,
+  boxSizing: 'border-box',
+  transition: 'border-color 0.15s',
+});
+
+// ─────────────────────────────────────────
+// SECTION HEADER
+// ─────────────────────────────────────────
+const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ marginBottom: '16px' }}>
+    <h3 style={{ fontSize: '15px', fontWeight: 800, color: colors.secondary, margin: '0 0 6px 0' }}>
+      {children}
+    </h3>
+    <div
+      style={{ height: '2px', width: '32px', backgroundColor: colors.primary, borderRadius: '1px' }}
+    />
+  </div>
+);
+
+// ─────────────────────────────────────────
+// CHECKOUT FORM — uses React Hook Form context
+// ─────────────────────────────────────────
+const CheckoutForm: React.FC = () => {
+  const {
+    register,
+    watch,
+    formState: { errors },
+  } = useFormContext<CheckoutFormData>();
+
+  const deliveryMethod = watch('deliveryMethod');
+  const paymentMethod = watch('paymentMethod');
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* ── Personal Information ── */}
       <section
         style={{
@@ -136,41 +165,70 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
         }}
       >
         <SectionTitle>Personal Information</SectionTitle>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <Field label="First Name" error={errors.firstName} required>
+        <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '14px' }}>
+          <Field label="First Name" error={errors.firstName?.message} required>
             <input
+              {...register('firstName')}
               type="text"
-              value={data.firstName}
-              onChange={(e) => onChange('firstName', e.target.value)}
               placeholder="John"
               style={inputStyle(!!errors.firstName)}
+              onFocus={(e) => {
+                if (!errors.firstName)
+                  (e.target as HTMLInputElement).style.borderColor = colors.primary;
+              }}
+              onBlur={(e) => {
+                if (!errors.firstName)
+                  (e.target as HTMLInputElement).style.borderColor = colors.border;
+              }}
             />
           </Field>
-          <Field label="Last Name" error={errors.lastName} required>
+
+          <Field label="Last Name" error={errors.lastName?.message} required>
             <input
+              {...register('lastName')}
               type="text"
-              value={data.lastName}
-              onChange={(e) => onChange('lastName', e.target.value)}
               placeholder="Doe"
               style={inputStyle(!!errors.lastName)}
+              onFocus={(e) => {
+                if (!errors.lastName)
+                  (e.target as HTMLInputElement).style.borderColor = colors.primary;
+              }}
+              onBlur={(e) => {
+                if (!errors.lastName)
+                  (e.target as HTMLInputElement).style.borderColor = colors.border;
+              }}
             />
           </Field>
-          <Field label="Email Address" error={errors.email} required>
+
+          <Field label="Email Address" error={errors.email?.message} required>
             <input
+              {...register('email')}
               type="email"
-              value={data.email}
-              onChange={(e) => onChange('email', e.target.value)}
               placeholder="john@example.com"
               style={inputStyle(!!errors.email)}
+              onFocus={(e) => {
+                if (!errors.email)
+                  (e.target as HTMLInputElement).style.borderColor = colors.primary;
+              }}
+              onBlur={(e) => {
+                if (!errors.email) (e.target as HTMLInputElement).style.borderColor = colors.border;
+              }}
             />
           </Field>
-          <Field label="Phone Number" error={errors.phone} required>
+
+          <Field label="Phone Number" error={errors.phone?.message} required>
             <input
+              {...register('phone')}
               type="tel"
-              value={data.phone}
-              onChange={(e) => onChange('phone', e.target.value)}
-              placeholder="+234 800 000 0000"
+              placeholder="08012345678"
               style={inputStyle(!!errors.phone)}
+              onFocus={(e) => {
+                if (!errors.phone)
+                  (e.target as HTMLInputElement).style.borderColor = colors.primary;
+              }}
+              onBlur={(e) => {
+                if (!errors.phone) (e.target as HTMLInputElement).style.borderColor = colors.border;
+              }}
             />
           </Field>
         </div>
@@ -187,30 +245,45 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
       >
         <SectionTitle>Delivery Address</SectionTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <Field label="Street Address" error={errors.address} required>
+          <Field label="Street Address" error={errors.address?.message} required>
             <input
+              {...register('address')}
               type="text"
-              value={data.address}
-              onChange={(e) => onChange('address', e.target.value)}
-              placeholder="12 Adeola Odeku Street"
+              placeholder="12 Adeola Odeku Street, Victoria Island"
               style={inputStyle(!!errors.address)}
+              onFocus={(e) => {
+                if (!errors.address)
+                  (e.target as HTMLInputElement).style.borderColor = colors.primary;
+              }}
+              onBlur={(e) => {
+                if (!errors.address)
+                  (e.target as HTMLInputElement).style.borderColor = colors.border;
+              }}
             />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <Field label="City" error={errors.city} required>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '14px' }}>
+            <Field label="City" error={errors.city?.message} required>
               <input
+                {...register('city')}
                 type="text"
-                value={data.city}
-                onChange={(e) => onChange('city', e.target.value)}
                 placeholder="Lagos"
                 style={inputStyle(!!errors.city)}
+                onFocus={(e) => {
+                  if (!errors.city)
+                    (e.target as HTMLInputElement).style.borderColor = colors.primary;
+                }}
+                onBlur={(e) => {
+                  if (!errors.city)
+                    (e.target as HTMLInputElement).style.borderColor = colors.border;
+                }}
               />
             </Field>
-            <Field label="State" error={errors.state} required>
+
+            <Field label="State" error={errors.state?.message} required>
               <div style={{ position: 'relative' }}>
                 <select
-                  value={data.state}
-                  onChange={(e) => onChange('state', e.target.value)}
+                  {...register('state')}
                   style={{
                     ...inputStyle(!!errors.state),
                     appearance: 'none',
@@ -292,16 +365,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
                 padding: '12px 14px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                border: `1.5px solid ${data.deliveryMethod === opt.value ? colors.primary : colors.border}`,
-                backgroundColor: data.deliveryMethod === opt.value ? '#F0FDF4' : colors.white,
+                border: `1.5px solid ${deliveryMethod === opt.value ? colors.primary : colors.border}`,
+                backgroundColor: deliveryMethod === opt.value ? '#F0FDF4' : colors.white,
               }}
             >
               <input
+                {...register('deliveryMethod')}
                 type="radio"
-                name="deliveryMethod"
                 value={opt.value}
-                checked={data.deliveryMethod === opt.value}
-                onChange={() => onChange('deliveryMethod', opt.value)}
                 style={{ display: 'none' }}
               />
               <div
@@ -310,14 +381,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
                   height: '18px',
                   borderRadius: '50%',
                   flexShrink: 0,
-                  border: `2px solid ${data.deliveryMethod === opt.value ? colors.primary : colors.border}`,
-                  backgroundColor: colors.white,
+                  border: `2px solid ${deliveryMethod === opt.value ? colors.primary : colors.border}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {data.deliveryMethod === opt.value && (
+                {deliveryMethod === opt.value && (
                   <div
                     style={{
                       width: '8px',
@@ -340,7 +410,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
                 style={{
                   fontSize: '13px',
                   fontWeight: 700,
-                  color: data.deliveryMethod === opt.value ? colors.primary : colors.secondary,
+                  color: deliveryMethod === opt.value ? colors.primary : colors.secondary,
                 }}
               >
                 {opt.price}
@@ -366,7 +436,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
             {
               value: 'transfer',
               label: 'Bank Transfer',
-              desc: "Direct bank transfer — we'll confirm manually",
+              desc: 'Direct bank transfer — confirmed manually',
             },
             { value: 'card', label: 'Debit/Credit Card', desc: 'Visa, Mastercard, Verve' },
           ].map((opt) => (
@@ -379,16 +449,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
                 padding: '12px 14px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                border: `1.5px solid ${data.paymentMethod === opt.value ? colors.primary : colors.border}`,
-                backgroundColor: data.paymentMethod === opt.value ? '#F0FDF4' : colors.white,
+                border: `1.5px solid ${paymentMethod === opt.value ? colors.primary : colors.border}`,
+                backgroundColor: paymentMethod === opt.value ? '#F0FDF4' : colors.white,
               }}
             >
               <input
+                {...register('paymentMethod')}
                 type="radio"
-                name="paymentMethod"
                 value={opt.value}
-                checked={data.paymentMethod === opt.value}
-                onChange={() => onChange('paymentMethod', opt.value)}
                 style={{ display: 'none' }}
               />
               <div
@@ -397,14 +465,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
                   height: '18px',
                   borderRadius: '50%',
                   flexShrink: 0,
-                  border: `2px solid ${data.paymentMethod === opt.value ? colors.primary : colors.border}`,
-                  backgroundColor: colors.white,
+                  border: `2px solid ${paymentMethod === opt.value ? colors.primary : colors.border}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {data.paymentMethod === opt.value && (
+                {paymentMethod === opt.value && (
                   <div
                     style={{
                       width: '8px',
@@ -438,14 +505,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ data, errors, onChange }) =
         }}
       >
         <SectionTitle>Order Notes</SectionTitle>
-        <Field label="Additional Notes (optional)">
+        <Field label="Additional Notes (optional)" error={errors.notes?.message}>
           <textarea
-            value={data.notes}
-            onChange={(e) => onChange('notes', e.target.value)}
+            {...register('notes')}
             placeholder="Any special instructions for delivery?"
             rows={3}
             style={{
-              ...inputStyle(false),
+              ...inputStyle(!!errors.notes),
               resize: 'vertical',
               minHeight: '80px',
               fontFamily: 'inherit',

@@ -54,8 +54,9 @@ const Header: React.FC = () => {
   const { openCartDrawer } = useUIStore();
 
   useEffect(() => {
-    // Run after mount to avoid sync state updates during effect setup.
-    queueMicrotask(() => setHasMounted(true));
+    // Avoid synchronous state updates in the effect body.
+    // Using a microtask ensures this runs after the current call stack.
+    void Promise.resolve().then(() => setHasMounted(true));
 
     const onScroll = () => setScrolled(window.scrollY > 10);
     onScroll();
@@ -135,7 +136,7 @@ const Header: React.FC = () => {
                 if (search.trim())
                   window.location.href = `/products?search=${encodeURIComponent(search)}`;
               }}
-              className="flex-1 hidden sm:flex items-center ml-90 rounded-md overflow-hidden"
+              className="flex-1 hidden sm:flex items-center ml-96 rounded-md overflow-hidden"
               style={{ border: `1.5px solid ${colors.border}`, maxWidth: '480px' }}
             >
               <input
@@ -156,8 +157,8 @@ const Header: React.FC = () => {
               </button>
             </form>
 
-            <div className="flex items-center gap-3 ml-auto">
-              <Link
+            <div className="flex items-center  ml-auto">
+              {/* <Link
                 href="/wishlist"
                 aria-label="Wishlist"
                 style={{ color: colors.secondary, display: 'flex', alignItems: 'center' }}
@@ -172,9 +173,9 @@ const Header: React.FC = () => {
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
                 </svg>
-              </Link>
+              </Link> */}
 
-              <Link
+              {/* <Link
                 href="/account"
                 aria-label="Account"
                 style={{ color: colors.secondary, display: 'flex', alignItems: 'center' }}
@@ -194,7 +195,7 @@ const Header: React.FC = () => {
                   />
                   <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </Link>
+              </Link> */}
 
               <button
                 onClick={openCartDrawer}
@@ -286,8 +287,12 @@ const Header: React.FC = () => {
               style={{ height: '40px' }}
             >
               {categoryLinks.map((link) => {
-                const active =
-                  pathname?.includes(link.href.split('?')[0]) && link.href !== '/products';
+                const linkCategory = new URLSearchParams(link.href.split('?')[1]).get('category');
+                const currentCategory =
+                  typeof window !== 'undefined'
+                    ? new URLSearchParams(window.location.search).get('category')
+                    : null;
+                const active = pathname === '/products' && linkCategory === currentCategory;
                 return (
                   <Link
                     key={link.label}
@@ -442,7 +447,7 @@ const Header: React.FC = () => {
                 borderTop: `1px solid ${colors.border}`,
               }}
             >
-              <Link
+              {/* <Link
                 href="/auth/signin"
                 onClick={() => setMobileOpen(false)}
                 style={{
@@ -458,7 +463,7 @@ const Header: React.FC = () => {
                 }}
               >
                 Sign In
-              </Link>
+              </Link> */}
             </div>
           </div>
         </>

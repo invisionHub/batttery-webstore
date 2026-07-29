@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { type Product, formatPrice } from '@/lib/mock-data';
 import { useCartStore } from '@/store/cartStore';
+import { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -108,7 +109,7 @@ export const ProductImagePlaceholder = ({ name }: { name: string }) => (
 // PRODUCT CARD
 // ─────────────────────────────────────────
 interface ProductCardProps {
-  product: Product;
+  product: CatalogProduct;
   view?: 'grid' | 'list';
   className?: string;
 }

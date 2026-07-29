@@ -2,6 +2,8 @@ import { MongoClient } from 'mongodb';
 import type { Collection, Db, Document } from 'mongodb';
 import { z } from 'zod';
 import type { Product } from '@/features/products/types/product.type';
+import dotevn from "dotenv";
+dotevn.config()
 
 export const MongoProductSchema = z.object({
   sku: z.string().min(1),
@@ -15,7 +17,7 @@ export const MongoProductSchema = z.object({
   maxPrice: z.number().min(0),
   pricePoints: z.number().min(1),
   shortDescription: z.string(),
-  stockStatus: z.enum(['In Stock', 'Out of Stock']),
+  stockStatus: z.enum([ 'In Stock', 'Out of Stock' ]),
   images: z.array(z.string()),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
@@ -58,10 +60,12 @@ const DEFAULT_PRODUCTS_COLLECTION = 'products';
 const DEFAULT_ORDERS_COLLECTION = 'orders';
 const DEFAULT_ORDER_ITEMS_COLLECTION = 'order_items';
 
-export function getMongoConfig() {
+export function getMongoConfig () {
   const uri = process.env.MONGODB_URI;
+  console.log(uri)
 
-  if (!uri) {
+  if (!uri)
+  {
     throw new Error('MONGODB_URI is required for MongoDB access.');
   }
 
@@ -75,27 +79,27 @@ export function getMongoConfig() {
   };
 }
 
-export function createMongoClient(uri = getMongoConfig().uri) {
+export function createMongoClient (uri = getMongoConfig().uri) {
   return new MongoClient(uri);
 }
 
-export function getMongoDb(client: MongoClient): Db {
+export function getMongoDb (client: MongoClient): Db {
   return client.db(getMongoConfig().dbName);
 }
 
-export function getProductsCollection(db: Db): Collection<Document> {
+export function getProductsCollection (db: Db): Collection<Document> {
   return db.collection(getMongoConfig().productsCollection);
 }
 
-export function getOrdersCollection(db: Db): Collection<Order> {
+export function getOrdersCollection (db: Db): Collection<Order> {
   return db.collection<Order>(getMongoConfig().ordersCollection);
 }
 
-export function getOrderItemsCollection(db: Db): Collection<OrderItem> {
+export function getOrderItemsCollection (db: Db): Collection<OrderItem> {
   return db.collection<OrderItem>(getMongoConfig().orderItemsCollection);
 }
 
-export async function createProductIndexes(collection: Collection<Document>) {
+export async function createProductIndexes (collection: Collection<Document>) {
   await collection.createIndexes([
     {
       key: { sku: 1 },
@@ -122,7 +126,7 @@ export async function createProductIndexes(collection: Collection<Document>) {
   ]);
 }
 
-export async function createOrderIndexes(collection: Collection<Order>) {
+export async function createOrderIndexes (collection: Collection<Order>) {
   await collection.createIndexes([
     {
       key: { id: 1 },
@@ -144,7 +148,7 @@ export async function createOrderIndexes(collection: Collection<Order>) {
   ]);
 }
 
-export async function createOrderItemIndexes(collection: Collection<OrderItem>) {
+export async function createOrderItemIndexes (collection: Collection<OrderItem>) {
   await collection.createIndexes([
     {
       key: { id: 1 },
@@ -162,7 +166,7 @@ export async function createOrderItemIndexes(collection: Collection<OrderItem>) 
   ]);
 }
 
-export async function createMongoIndexes(db: Db) {
+export async function createMongoIndexes (db: Db) {
   await Promise.all([
     createProductIndexes(getProductsCollection(db)),
     createOrderIndexes(getOrdersCollection(db)),
@@ -170,11 +174,12 @@ export async function createMongoIndexes(db: Db) {
   ]);
 }
 
-export async function seedProductsToMongo(products: Product[]): Promise<ProductSeedResult> {
+export async function seedProductsToMongo (products: Product[]): Promise<ProductSeedResult> {
   const config = getMongoConfig();
   const client = createMongoClient(config.uri);
 
-  try {
+  try
+  {
     await client.connect();
 
     const db = client.db(config.dbName);
@@ -218,7 +223,8 @@ export async function seedProductsToMongo(products: Product[]): Promise<ProductS
       matched: result.matchedCount,
       modified: result.modifiedCount,
     };
-  } finally {
+  } finally
+  {
     await client.close();
   }
 }

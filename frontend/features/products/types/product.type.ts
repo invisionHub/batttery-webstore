@@ -13,3 +13,13 @@ export interface Product {
   stockStatus: 'In Stock' | 'Out of Stock';
   images: string[];
 }
+
+
+
+export type CatalogProduct = Partial<Product> & {
+  id: string
+  originalPrice: number
+  rating: number
+  reviewCount: number
+  badge?: 'best-seller'
+}

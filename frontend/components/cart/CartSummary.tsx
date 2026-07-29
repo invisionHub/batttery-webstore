@@ -277,7 +277,7 @@ const CartSummary: React.FC = () => {
 
         {/* Checkout CTA */}
         <Link
-          href="/checkout"
+          href="/checkOut"
           style={{
             display: 'flex',
             alignItems: 'center',

@@ -1,2 +1,2 @@
 export { useProductStore } from './store/productStore';
-export { fetchProductsFromDatabase } from './actions/get-products';
+export { fetchProducts } from './actions/get-products';

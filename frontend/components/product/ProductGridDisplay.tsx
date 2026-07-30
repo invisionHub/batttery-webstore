@@ -1,9 +1,9 @@
 import React from 'react';
 import ProductCard from './ProductCard';
-import { type Product } from '@/lib/mock-data';
+import { CatalogProduct } from '@/features/products/types/product.type';
 
 interface ProductGridDisplayProps {
-  products: Product[];
+  products: CatalogProduct[];
   view: 'grid' | 'list';
 }
 

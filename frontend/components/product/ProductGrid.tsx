@@ -1,7 +1,7 @@
 import React from 'react';
-import { type Product } from '@/lib/mock-data';
 import ProductCard from './ProductCard';
 import { ProductCardSkeleton } from '../ui/skeleton';
+import { CatalogProduct } from '@/features/products/types/product.type';
 // ============================================
 // BRAND COLORS — change these to update theme
 // ============================================
@@ -14,7 +14,7 @@ const colors = {
 };
 
 interface ProductGridProps {
-  products: Product[];
+  products: CatalogProduct[];
   isLoading?: boolean;
   view?: 'grid' | 'list';
   className?: string;

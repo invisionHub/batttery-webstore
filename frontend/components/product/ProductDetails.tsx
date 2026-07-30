@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { type Product, formatPrice } from '@/lib/mock-data';
+import { formatPrice } from '@/lib/mock-data';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
+import { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -51,7 +52,7 @@ const colorOptions = [
 ];
 
 interface ProductDetailsProps {
-  product: Product;
+  product: CatalogProduct;
   className?: string;
 }
 
@@ -68,7 +69,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
   const inCart = isInCart(product.id);
 
   const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    ? Math.round(((product.originalPrice - product.price!) / product.originalPrice) * 100)
     : null;
 
   const badgeColors: Record<string, string> = {
@@ -77,6 +78,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
     'best-seller': colors.badgeBest,
     hot: colors.badgeSale,
   };
+
+  const inStock = product.stockStatus === 'In Stock' ? 'in Stock' : null;
 
   // ── Add to Cart — now wired to Zustand ──
   const handleAddToCart = () => {
@@ -135,7 +138,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
       {/* Price */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '30px', fontWeight: 900, color: colors.secondary }}>
-          {formatPrice(product.price)}
+          {formatPrice(product.price!)}
         </span>
         {product.originalPrice && (
           <>
@@ -171,8 +174,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
           padding: '6px 12px',
           borderRadius: '6px',
           width: 'fit-content',
-          backgroundColor: product.inStock ? colors.successBg : '#FEF2F2',
-          border: `1px solid ${product.inStock ? colors.successBorder : '#FECACA'}`,
+          backgroundColor: product.stockStatus === 'In Stock' ? colors.successBg : '#FEF2F2',
+          border: `1px solid ${product.stockStatus === 'In Stock' ? colors.successBorder : '#FECACA'}`,
         }}
       >
         <span
@@ -180,23 +183,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
             width: '7px',
             height: '7px',
             borderRadius: '50%',
-            backgroundColor: product.inStock ? colors.primary : colors.badgeSale,
+            backgroundColor: inStock ? colors.primary : colors.badgeSale,
           }}
         />
         <span
           style={{
             fontSize: '12px',
             fontWeight: 600,
-            color: product.inStock ? '#15803D' : colors.badgeSale,
+            color: inStock ? '#15803D' : colors.badgeSale,
           }}
         >
-          {product.inStock ? 'In Stock — Ready to Ship' : 'Out of Stock'}
+          {inStock ? 'In Stock — Ready to Ship' : 'Out of Stock'}
         </span>
       </div>
 
       {/* Description */}
       <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7, margin: 0 }}>
-        {product.description}
+        {product.shortDescription}
       </p>
 
       <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
@@ -299,14 +302,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
         {/* Add to Cart — wired to cartStore */}
         <button
           onClick={handleAddToCart}
-          disabled={!product.inStock}
+          disabled={!inStock}
           style={{
             flex: 1,
             minWidth: '180px',
             height: '44px',
             borderRadius: '8px',
             border: 'none',
-            backgroundColor: !product.inStock
+            backgroundColor: !inStock
               ? colors.border
               : inCart
                 ? colors.primaryHover
@@ -314,7 +317,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
             color: colors.white,
             fontSize: '14px',
             fontWeight: 700,
-            cursor: product.inStock ? 'pointer' : 'not-allowed',
+            cursor: inStock ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

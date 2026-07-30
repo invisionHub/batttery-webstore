@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Product } from '../lib/mock-data';
+import { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // TYPES
@@ -28,7 +29,7 @@ interface CartState {
   items: CartItem[];
 
   // Actions
-  addProduct: (product: Product, quantity?: number, color?: string) => void;
+  addProduct: (product: CatalogProduct, quantity?: number, color?: string) => void;
   removeProduct: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -64,11 +65,11 @@ export const useCartStore = create<CartState>()(
 
           const newItem: CartItem = {
             id: product.id,
-            slug: product.slug,
-            name: product.name,
-            price: product.price,
+            slug: product.slug!,
+            name: product.name!,
+            price: product.price!,
             originalPrice: product.originalPrice,
-            image: product.image,
+            image: '',
             quantity,
             color,
           };

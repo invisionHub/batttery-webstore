@@ -126,9 +126,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : null;
+  const discount =
+    product.originalPrice && product.price!
+      ? Math.round(((product.originalPrice - product.price!) / product.originalPrice) * 100)
+      : null;
 
   // ── LIST VIEW ──
   if (view === 'list') {
@@ -147,7 +148,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
         >
           <ProductBadge badge={product.badge} />
           <Link href={`/products/${product.slug}`} className="block w-full h-full">
-            <ProductImagePlaceholder name={product.name} />
+            <ProductImagePlaceholder name={product.name!} />
           </Link>
         </div>
 
@@ -157,7 +158,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
             className="text-xs font-medium uppercase tracking-wide"
             style={{ color: colors.primary }}
           >
-            {product.category.replace(/-/g, ' ')}
+            {product.category?.replace(/-/g, ' ')}
           </span>
           <Link href={`/products/${product.slug}`}>
             <h3
@@ -170,7 +171,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
           <StarRating rating={product.rating} count={product.reviewCount} />
           <div className="flex items-center gap-2 mt-auto">
             <span className="text-base font-black" style={{ color: colors.secondary }}>
-              {formatPrice(product.price)}
+              {formatPrice(product.price!)}
             </span>
             {product.originalPrice && (
               <span className="text-xs line-through" style={{ color: colors.textMuted }}>
@@ -265,7 +266,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
         </button>
 
         <Link href={`/products/${product.slug}`} className="block w-full h-full">
-          <ProductImagePlaceholder name={product.name} />
+          <ProductImagePlaceholder name={product.name!} />
         </Link>
       </div>
 
@@ -275,7 +276,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
           className="text-xs font-medium uppercase tracking-wide"
           style={{ color: colors.primary }}
         >
-          {product.category.replace(/-/g, ' ')}
+          {product.category?.replace(/-/g, ' ')}
         </span>
 
         <Link href={`/products/${product.slug}`}>
@@ -292,7 +293,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
         {/* Price */}
         <div className="flex items-center gap-2 mt-auto flex-wrap">
           <span className="text-sm font-black" style={{ color: colors.secondary }}>
-            {formatPrice(product.price)}
+            {formatPrice(product.price!)}
           </span>
           {product.originalPrice && (
             <span className="text-xs line-through" style={{ color: colors.textMuted }}>

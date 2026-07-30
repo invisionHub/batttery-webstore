@@ -143,7 +143,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
       >
         {/* Image */}
         <div
-          className="relative flex-shrink-0 rounded-lg overflow-hidden"
+          className="relative shrink-0 rounded-lg overflow-hidden"
           style={{ width: '100px', height: '100px' }}
         >
           <ProductBadge badge={product.badge} />
@@ -187,7 +187,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-2 flex-shrink-0">
+        <div className="flex flex-col gap-2 shrink-0">
           <button
             onClick={(e) => {
               e.preventDefault();

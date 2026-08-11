@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -23,7 +23,7 @@ type CheckoutResultState = {
   orderId?: string;
 };
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference') ?? '';
   const paymentStatus = searchParams.get('status') ?? '';
@@ -35,7 +35,8 @@ export default function CheckoutSuccessPage() {
         loading: true,
         ok: true,
         title: 'Confirming your payment...',
-        description: 'Please wait while we verify your payment and process your confirmation email.',
+        description:
+          'Please wait while we verify your payment and process your confirmation email.',
         orderId: orderIdFromQuery,
       };
     }
@@ -44,7 +45,8 @@ export default function CheckoutSuccessPage() {
       loading: true,
       ok: true,
       title: 'Verifying your payment...',
-      description: 'Please wait while we confirm your Paystack payment and process your confirmation email.',
+      description:
+        'Please wait while we confirm your Paystack payment and process your confirmation email.',
       orderId: orderIdFromQuery,
     };
   }, [orderIdFromQuery, paymentStatus]);
@@ -67,7 +69,9 @@ export default function CheckoutSuccessPage() {
       }
 
       try {
-        const response = await fetch(`/api/payments/callback?reference=${encodeURIComponent(reference)}`);
+        const response = await fetch(
+          `/api/payments/callback?reference=${encodeURIComponent(reference)}`
+        );
         const result = (await response.json()) as {
           ok: boolean;
           message: string;
@@ -84,7 +88,8 @@ export default function CheckoutSuccessPage() {
             loading: false,
             ok: false,
             title: 'Payment verification failed',
-            description: result.message || 'We could not verify your payment yet. Please contact support.',
+            description:
+              result.message || 'We could not verify your payment yet. Please contact support.',
             orderId: result.orderId ?? orderIdFromQuery,
           });
           return;
@@ -260,5 +265,28 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            minHeight: '70vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.secondary,
+            fontWeight: 700,
+          }}
+        >
+          Loading payment status...
+        </div>
+      }
+    >
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

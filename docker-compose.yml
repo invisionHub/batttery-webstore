@@ -1,11 +1,11 @@
 version: "3.9"
 
 services:
-  frontend:
+  app:
     build:
-      context: ./frontend
+      context: .
 
-    container_name: frontend
+    container_name: final-batterystore
 
     restart: unless-stopped
 
@@ -13,4 +13,4 @@ services:
       - "3000:3000"
 
     env_file:
-      - ./frontend/.env
+      - ./.env.local

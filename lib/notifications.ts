@@ -19,7 +19,6 @@ function titleCase(value: string) {
 export function buildOrderEmailPayloads(order: Order, items: OrderItem[]): EmailPayload[] {
   const isPaid = order.status === 'paid';
 
-
   const itemRows = items
     .map(
       (item) => `
@@ -99,8 +98,8 @@ export async function sendOrderEmailNotifications(
 ): Promise<OrderNotificationResult> {
   const payloads = buildOrderEmailPayloads(order, items);
   const deliveries = await Promise.all(payloads.map((payload) => sendEmail(payload)));
-  const ok = deliveries.every((delivery) => delivery.ok || delivery.skipped);
-  const skipped = deliveries.every((delivery) => delivery.skipped);
+  const ok = deliveries.every((delivery: EmailSendResult) => delivery.ok || delivery.skipped);
+  const skipped = deliveries.every((delivery: EmailSendResult) => delivery.skipped);
 
   return {
     ok,

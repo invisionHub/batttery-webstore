@@ -1,310 +1,164 @@
-# Battery Store - Full Stack Application
+# Battery Store Setup Guide
 
-A modern full-stack e-commerce application for battery products built with Next.js, Express.js, and PostgreSQL.
+## Overview
 
-## Technology Stack
+This repository now runs as a single root-level Next.js application using `npm`.
+There is no nested `frontend/` workspace anymore.
 
-### Frontend
+Core integrations:
 
-- **Next.js 15** - React framework with SSR/SSG
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **ESLint** - Code quality
+- Next.js 16
+- React 19
+- TypeScript
+- MongoDB
+- Paystack
+- Resend
 
-### Backend
+## Project structure
 
-- **Express.js** - Node.js web framework
-- **TypeScript** - Type safety
-- **Drizzle ORM** - SQL ORM for PostgreSQL
-- **PostgreSQL** - Relational database
-- **Winston** - Logging
-- **Zod** - Schema validation
-- **Helmet** - Security headers
-- **Vitest + Supertest** - Testing
-
-### DevOps
-
-- **Docker** - Containerization
-- **Docker Compose** - Multi-container orchestration
-- **GitHub Actions** - CI/CD pipelines
-
-## Project Structure
-
-```
+```text
 .
-├── frontend/              # Next.js frontend application
-│   ├── app/              # App router pages
-│   ├── src/              # React components & utilities
-│   ├── package.json
-│   └── Dockerfile
-├── backend/              # Express.js backend API
-│   ├── src/
-│   │   ├── server.ts     # Entry point
-│   │   ├── app.ts        # Express setup
-│   │   ├── config/       # Configuration files
-│   │   ├── middleware/   # Express middleware
-│   │   ├── utils/        # Utilities
-│   │   ├── db/           # Database schema & migrations
-│   │   └── tests/        # Test files
-│   ├── package.json
-│   ├── Dockerfile
-│   └── drizzle.config.ts # ORM configuration
-├── docker-compose.yml     # Multi-container orchestration
-└── .github/
-    └── workflows/        # CI/CD pipelines
-        ├── frontend.yml
-        └── backend.yml
+├── app/                    # App Router pages and API routes
+├── assets/                 # Local design assets
+├── components/             # Shared UI components
+├── constants/              # Shared constants
+├── data/                   # Static and seed data
+├── features/               # Feature-based modules
+├── hooks/                  # Shared React hooks
+├── lib/                    # Infrastructure and business helpers
+│   ├── database/           # Mongo connection and schemas
+│   └── repositories/       # Repository pattern implementations
+├── public/                 # Public static files
+├── schemas/                # Zod schemas
+├── scripts/                # Root scripts
+├── store/                  # Client stores
+├── types/                  # Shared types
+├── utils/                  # Utilities
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+└── tsconfig.json
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Docker & Docker Compose
-- Node.js 22+ (for local development)
-- npm or yarn
-
-### Local Development with Docker
-
-1. **Clone the repository**
+## Install dependencies
 
 ```bash
-git clone <repo-url>
-cd client-battery-store
+npm ci
 ```
 
-2. **Build and start all services**
+## Environment variables
+
+Create `.env.local` in the repository root.
+
+Typical local values:
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/battery-webstore
+MONGODB_DB_NAME=battery-webstore
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+APP_URL=http://localhost:3000
+PAYMENT_PROVIDER=mock
+PAYSTACK_SECRET_KEY=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+RESEND_FROM_NAME=Battery Store
+STORE_OWNER_EMAIL=owner@example.com
+```
+
+### Local development notes
+
+- `PAYMENT_PROVIDER=mock` is the easiest local mode.
+- To test real Paystack flows locally, switch `PAYMENT_PROVIDER=paystack`
+  and set `PAYSTACK_SECRET_KEY`.
+- Resend emails only send when `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+  are configured.
+
+## Run locally
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Validation commands
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm run test
+```
+
+## Checkout architecture
+
+### Request flow
+
+1. The checkout UI collects customer details, delivery method, payment
+   method, and cart items.
+2. `app/api/checkout/route.ts` validates the payload with Zod.
+3. `lib/checkout.ts` computes totals and creates a pending order.
+4. `lib/repositories/order.repository.ts` persists the order and order
+   items in MongoDB.
+5. `lib/payments.ts` initializes the Paystack transaction.
+6. The frontend redirects the customer to the Paystack payment URL.
+7. `app/api/payments/callback/route.ts` verifies the reference.
+8. The order is updated to `paid` after successful verification.
+9. `lib/notifications.ts` sends order emails via `lib/email.ts`.
+
+### Supported payment methods
+
+All payment methods are routed through Paystack:
+
+- `card`
+- `bank_transfer`
+- `ussd`
+
+## Database layer
+
+MongoDB access is split by concern:
+
+- `lib/database/mongodb.connection.ts`
+  - connection lifecycle
+  - collection access
+  - schema types
+  - index creation
+- `lib/repositories/product.repository.ts`
+  - product queries
+  - product writes
+- `lib/repositories/order.repository.ts`
+  - order queries
+  - order item writes
+  - payment status updates
+
+## Docker
+
+Run the root app with:
 
 ```bash
 docker compose up --build
 ```
 
-Services will be available at:
+The compose file builds from the repository root.
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
-- Database: localhost:5432
+## CI
 
-3. **View logs**
+The GitHub workflow in `.github/workflows/setup.yml` runs from the root and uses:
 
-```bash
-docker compose logs -f
-```
+- `npm ci`
+- `npm run format:check`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
 
-4. **Stop services**
+## Production checklist
 
-```bash
-docker compose down
-```
+Before deploying:
 
-### Local Development without Docker
-
-#### Backend Setup
-
-1. **Install dependencies**
-
-```bash
-cd backend
-npm install
-```
-
-2. **Set up environment variables**
-
-```bash
-cp .env.example .env
-# Edit .env with your DATABASE_URL
-```
-
-3. **Start development server**
-
-```bash
-npm run dev
-```
-
-Backend will run on http://localhost:5000
-
-4. **Run tests**
-
-```bash
-npm test
-```
-
-#### Frontend Setup
-
-1. **Install dependencies**
-
-```bash
-cd frontend
-npm install
-```
-
-2. **Start development server**
-
-```bash
-npm run dev
-```
-
-Frontend will run on http://localhost:3000
-
-## Available Scripts
-
-### Backend
-
-```bash
-npm run dev       # Start development server with auto-reload
-npm run build     # Compile TypeScript to JavaScript
-npm start         # Run production build
-npm test          # Run tests with Vitest
-```
-
-### Frontend
-
-```bash
-npm run dev       # Start development server
-npm run build     # Build for production
-npm start         # Start production server
-npm run lint      # Run ESLint
-```
-
-## Database
-
-The application uses PostgreSQL with Drizzle ORM.
-
-### Database Schema
-
-Currently includes tables for:
-
-- `users` - User accounts
-- `products` - Battery products
-- `orders` - Customer orders
-
-### Running Migrations
-
-```bash
-# Generate migrations from schema
-npx drizzle-kit generate
-
-# Apply migrations
-npx drizzle-kit migrate
-```
-
-## Environment Variables
-
-### Backend (.env)
-
-```
-PORT=5000
-NODE_ENV=development
-DATABASE_URL=postgresql://postgres:postgres@db:5432/exam_system
-JWT_SECRET=your_secret_key
-CORS_ORIGIN=http://localhost:3000
-```
-
-### Frontend (.env)
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-## API Documentation
-
-### Health Check
-
-```
-GET /health
-```
-
-### API Info
-
-```
-GET /api
-```
-
-## CI/CD Pipelines
-
-GitHub Actions automatically:
-
-**Frontend Workflow** (`.github/workflows/frontend.yml`)
-
-- Triggers on changes to `frontend/**`
-- Installs dependencies
-- Runs build validation
-
-**Backend Workflow** (`.github/workflows/backend.yml`)
-
-- Triggers on changes to `backend/**`
-- Installs dependencies
-- Runs tests
-- Builds application
-
-## Docker Commands
-
-```bash
-# Build containers
-docker compose build
-
-# Start services
-docker compose up
-docker compose up -d      # Detached mode
-
-# View logs
-docker compose logs -f    # Follow logs
-docker compose logs backend  # Service-specific
-
-# Stop services
-docker compose down
-docker compose down -v    # Remove volumes
-
-# Execute command in container
-docker compose exec backend npm test
-docker compose exec -it db psql -U postgres
-```
-
-## Troubleshooting
-
-### Database Connection Issues
-
-- Ensure `db` service is running: `docker compose logs db`
-- Check `DATABASE_URL` in `.env` matches service hostname
-
-### Port Already in Use
-
-```bash
-# Change ports in docker-compose.yml or:
-docker compose down -v
-```
-
-### Node modules not installing
-
-```bash
-# Clear cache and rebuild
-docker compose down -v
-docker compose build --no-cache
-docker compose up
-```
-
-## Best Practices
-
-1. **Environment Variables** - Never commit `.env` files, use `.env.example`
-2. **Database** - Use migrations for schema changes
-3. **Testing** - Write tests for backend APIs
-4. **Git Commits** - Push to feature branches and create PRs
-5. **Docker** - Rebuild after dependency changes
-6. **Logging** - Use Winston logger for backend logs
-
-## Next Steps
-
-- Implement authentication (JWT)
-- Add product management endpoints
-- Create order processing API
-- Add frontend pages and components
-- Set up payment processing
-- Deploy to production
-
-## Support
-
-For issues or questions, please create a GitHub issue.
-
-## License
-
-ISC
+1. Set `PAYMENT_PROVIDER=paystack`
+2. Add a real `PAYSTACK_SECRET_KEY`
+3. Add Resend credentials
+4. Point `NEXT_PUBLIC_APP_URL` and `APP_URL` to the production domain
+5. Point `MONGODB_URI` to the production MongoDB instance
+6. Configure the Paystack callback/webhook URL

@@ -17,30 +17,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: npm
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Format Check
-        run: pnpm format:check
+        run: npm run format:check
 
       - name: Lint
-        run: pnpm lint
+        run: npm run lint
 
       - name: Type Check
-        run: pnpm typecheck
+        run: npm run typecheck
 
       - name: Tests
-        run: pnpm test
+        run: npm run test
 
       - name: Build
-        run: pnpm build
+        run: npm run build
 
-      - name: Docker Build Frontend
-        run: docker build -t frontend ./frontend
-
-      - name: Docker Build Backend
-        run: docker build -t backend ./backend
+      - name: Docker Build App
+        run: docker build -t final-batterystore .

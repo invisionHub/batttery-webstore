@@ -1,498 +1,127 @@
-# Docker + CI/CD Setup Guide (Monorepo)
+# Infrastructure Setup
 
-# Overview
+## Current repository model
 
-This guide explains how to setup:
+This project is a single root-level Next.js application.
 
-- Docker for frontend and backend services
-- PostgreSQL container
-- Docker Compose orchestration
-- GitHub Actions CI/CD pipelines
+There is no separate `frontend/` package anymore. All commands, Docker
+builds, CI jobs, and local development workflows run from the repository
+root.
 
-This setup is intended for a monorepo architecture using:
+## Root runtime
 
-- Next.js frontend
-- Express backend
-- PostgreSQL database
+- Package manager: `npm`
+- App runtime: Next.js
+- Database: MongoDB
+- Payments: Paystack
+- Transactional email: Resend
 
----
+## Root Docker setup
 
-# Monorepo Structure
+### Build and run
 
 ```bash
-project-root/
-├── frontend/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── .env
-│
-├── backend/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── .env
-│
-├── docker-compose.yml
-│
-├── .github/
-│   └── workflows/
-│       ├── frontend.yml
-│       └── backend.yml
-│
-└── README.md
+docker compose up --build
 ```
 
----
+### Dockerfile
 
-# Why Separate Dockerfiles?
+The root `Dockerfile` builds the app from the repository root.
 
-Frontend and backend are separate services.
+### Docker Compose
 
-Each service:
-
-- has different dependencies
-- has different runtime requirements
-- may scale independently
-
-This is the standard architecture for modern fullstack systems.
-
----
-
-# FRONTEND DOCKER SETUP
-
----
-
-# Frontend Dockerfile
-
-## `frontend/Dockerfile`
-
-```Dockerfile
-FROM node:22-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-EXPOSE 3000
-
-CMD ["npm", "run", "dev"]
-```
-
----
-
-# Frontend Environment Variables
-
-## `frontend/.env`
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
----
-
-# BACKEND DOCKER SETUP
-
----
-
-# Backend Dockerfile
-
-## `backend/Dockerfile`
-
-```Dockerfile
-FROM node:22-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["npm", "run", "dev"]
-```
-
----
-
-# Backend Environment Variables
-
-## `backend/.env`
-
-```env
-PORT=5000
-
-DATABASE_URL=postgresql://postgres:postgres@db:5432/battery-store
-
-JWT_SECRET=secret
-
-NODE_ENV=development
-```
-
----
-
-# DOCKER COMPOSE SETUP
-
----
-
-# Why Docker Compose?
-
-Docker Compose allows you to orchestrate multiple services using a single configuration file.
-
-This setup runs:
-
-- frontend
-- backend
-- postgres database
-
-with one command.
-
----
-
-# Docker Compose File
-
-## `docker-compose.yml`
+The root `docker-compose.yml` starts the app service from:
 
 ```yaml
-version: "3.9"
-
 services:
-  frontend:
-    build: ./frontend
-
-    container_name: frontend
-
-    ports:
-      - "3000:3000"
-
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-
-    env_file:
-      - ./frontend/.env
-
-    depends_on:
-      - backend
-
-  backend:
-    build: ./backend
-
-    container_name: backend
-
-    ports:
-      - "5000:5000"
-
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-
-    env_file:
-      - ./backend/.env
-
-    depends_on:
-      - db
-
-  db:
-    image: postgres:17
-
-    container_name: postgres-db
-
-    restart: always
-
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: exam_system
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
+  app:
+    build:
+      context: .
 ```
 
----
+## Environment configuration
 
-# Docker Commands
+Use root environment files only.
 
----
+### Local
 
-# Build Containers
+- `.env.local`
+
+### Example template
+
+- `.env.example`
+
+Important variables include:
+
+```env
+MONGODB_URI=
+MONGODB_DB_NAME=
+NEXT_PUBLIC_APP_URL=
+APP_URL=
+PAYMENT_PROVIDER=
+PAYSTACK_SECRET_KEY=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+RESEND_FROM_NAME=
+STORE_OWNER_EMAIL=
+```
+
+## CI pipeline
+
+The active workflow is:
+
+- `.github/workflows/setup.yml`
+
+It runs from the repository root and executes:
 
 ```bash
-docker compose build
+npm ci
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
----
+## Database architecture
 
-# Start Containers
+MongoDB responsibilities are separated into:
 
-```bash
-docker compose up
-```
+- `lib/database/mongodb.connection.ts`
+- `lib/repositories/product.repository.ts`
+- `lib/repositories/order.repository.ts`
 
----
+This keeps connection management, indexing, and repository queries in
+separate layers.
 
-# Start Containers in Detached Mode
+## Payment infrastructure
 
-```bash
-docker compose up -d
-```
+Checkout payment options are all Paystack-backed:
 
----
+- Card
+- Bank transfer
+- USSD
 
-# Stop Containers
+Relevant files:
 
-```bash
-docker compose down
-```
+- `app/api/checkout/route.ts`
+- `app/api/payments/callback/route.ts`
+- `app/api/payments/webhook/route.ts`
+- `lib/payments.ts`
 
----
+## Email infrastructure
 
-# Remove Containers + Volumes
+Order notifications are sent through Resend.
 
-```bash
-docker compose down -v
-```
+Relevant files:
 
----
+- `lib/email.ts`
+- `lib/notifications.ts`
 
-# CI/CD SETUP
+## Recommended deployment checks
 
-# Overview
-
-GitHub Actions is used for:
-
-- automated testing
-- builds
-- deployment preparation
-
-Frontend and backend use separate workflows because they are independent services.
-
----
-
-# GitHub Actions Folder
-
-```bash
-.github/
-└── workflows/
-    ├── frontend.yml
-    └── backend.yml
-```
-
----
-
-# FRONTEND CI/CD
-
----
-
-# Frontend Workflow
-
-## `.github/workflows/frontend.yml`
-
-```yaml
-name: Frontend CI
-
-on:
-  push:
-    paths:
-      - "frontend/**"
-
-  pull_request:
-    paths:
-      - "frontend/**"
-
-jobs:
-  frontend:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Build
-        run: npm run build
-```
-
----
-
-# What This Workflow Does
-
-When code changes inside:
-
-```bash
-frontend/
-```
-
-GitHub Actions will:
-
-- install dependencies
-- build frontend
-- validate the application
-
-This helps catch deployment errors early.
-
----
-
-# BACKEND CI/CD
-
----
-
-# Backend Workflow
-
-## `.github/workflows/backend.yml`
-
-```yaml
-name: Backend CI
-
-on:
-  push:
-    paths:
-      - "backend/**"
-
-  pull_request:
-    paths:
-      - "backend/**"
-
-jobs:
-  backend:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Tests
-        run: npm run test
-
-      - name: Build Application
-        run: npm run build
-```
-
----
-
-# What This Workflow Does
-
-When code changes inside:
-
-```bash
-backend/
-```
-
-GitHub Actions will:
-
-- install dependencies
-- run tests
-- build backend
-
-This ensures backend stability before deployment.
-
----
-
-# Recommended Next Steps
-
-After this setup, the next improvements are:
-
-- Docker production builds
-- VPS deployment
-- Nginx reverse proxy
-- SSL setup
-- Managed PostgreSQL
-- Redis caching
-- Kubernetes
-- Monitoring and logging
-
----
-
-# Recommended Development Flow
-
-1. Develop locally with Docker Compose
-2. Push code to GitHub
-3. GitHub Actions validates builds/tests
-4. Deploy services to VPS or cloud platform
-
----
-
-# Important Notes
-
-## Use Separate Services
-
-Frontend and backend should remain independent services even inside a monorepo.
-
-This makes:
-
-- scaling easier
-- deployments cleaner
-- maintenance simpler
-
----
-
-## Docker Compose is for Development
-
-Docker Compose is ideal for:
-
-- local development
-- staging
-- integration testing
-
-Production deployments usually use:
-
-- Kubernetes
-- ECS
-- Docker Swarm
-- VPS orchestration
-
----
-
-## Keep Environment Variables Separate
-
-Use:
-
-- frontend/.env
-- backend/.env
-
-Never expose backend secrets to the frontend.
-
----
-
-# Final Goal
-
-This setup creates a scalable foundation for:
-
-- SaaS products
-- enterprise systems
-- infrastructure platforms
-- exam systems
-- authentication systems
+1. Confirm root `.env` values are set correctly
+2. Verify MongoDB network access
+3. Verify Paystack secret and callback URLs
+4. Verify Resend sender domain and from address
+5. Run root validation commands before deployment

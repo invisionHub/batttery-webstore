@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { type Product } from '@/lib/mock-data';
+import type { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -16,17 +16,26 @@ const colors = {
 };
 
 interface SpecificationsTableProps {
-  product: Product;
+  product: CatalogProduct;
   className?: string;
 }
 
 // Demo spec data — keyed loosely off category, replace with real data later
-const getSpecs = (product: Product): { label: string; value: string }[] => [
-  { label: 'Brand', value: product.brand.charAt(0).toUpperCase() + product.brand.slice(1) },
+const getSpecs = (product: CatalogProduct): { label: string; value: string }[] => [
+  {
+    label: 'Brand',
+    value:
+      typeof product.brand === 'string' && product.brand.length > 0
+        ? product.brand.charAt(0).toUpperCase() + product.brand.slice(1)
+        : 'N/A',
+  },
   { label: 'Model Number', value: `JVL-${product.id.toUpperCase()}` },
   {
     label: 'Category',
-    value: product.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    value:
+      typeof product.category === 'string' && product.category.length > 0
+        ? product.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+        : 'Uncategorized',
   },
   { label: 'Material', value: 'Premium Polycarbonate / Metal Alloy' },
   { label: 'Color', value: 'Matte Black, Pearl White, Champagne Gold' },
@@ -61,7 +70,7 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
   const tabs = [
     { id: 'description' as const, label: 'Description' },
     { id: 'specs' as const, label: 'Specifications' },
-    { id: 'reviews' as const, label: `Reviews (${product.reviewCount})` },
+    { id: 'reviews' as const, label: `Reviews (${product.reviewCount ?? 0})` },
   ];
 
   return (
@@ -112,9 +121,8 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
               Product Overview
             </h3>
             <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.8, margin: 0 }}>
-              {product.description} Built to last with industrial-grade components, this product is
-              designed for both residential and commercial use across Nigerias varying power
-              conditions. Every unit is tested for safety and durability before leaving the factory.
+              {product.shortDescription ?? 'Built to last with industrial-grade components, this product is designed for both residential and commercial use.'}{' '}
+              Every unit is tested for safety and durability before leaving the factory.
             </p>
           </div>
 
@@ -270,7 +278,7 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
               }}
             >
               <span style={{ fontSize: '28px', fontWeight: 900, color: colors.white }}>
-                {product.rating}
+                {product.rating ?? 0}
               </span>
               <div style={{ display: 'flex', gap: '1px', marginTop: '2px' }}>
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -279,7 +287,7 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
                     width="9"
                     height="9"
                     viewBox="0 0 24 24"
-                    fill={s <= Math.round(product.rating) ? '#F59E0B' : 'none'}
+                    fill={s <= Math.round(product.rating ?? 0) ? '#F59E0B' : 'none'}
                     stroke="#F59E0B"
                     strokeWidth="2"
                   >
@@ -292,9 +300,9 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[5, 4, 3, 2, 1].map((star) => {
                 const pct =
-                  star === Math.round(product.rating)
+                  star === Math.round(product.rating ?? 0)
                     ? 70
-                    : star === Math.round(product.rating) - 1
+                    : star === Math.round(product.rating ?? 0) - 1
                       ? 20
                       : 5;
                 return (

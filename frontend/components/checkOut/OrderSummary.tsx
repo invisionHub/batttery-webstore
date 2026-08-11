@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { formatPrice } from '@/lib/mock-data';
+import { calculateCheckoutPricing, type DeliveryMethod } from '@/features/checkout/bussiness/pricing';
 
 const colors = {
   primary: '#CC0000',
@@ -14,27 +15,16 @@ const colors = {
   textMuted: '#6B7280',
 };
 
-const VAT_RATE = 0.075;
-const SHIPPING_FEES: Record<string, number> = {
-  standard: 3500,
-  express: 7000,
-  pickup: 0,
-};
-const FREE_DELIVERY_THRESHOLD = 50000;
-
 interface OrderSummaryProps {
-  deliveryMethod?: 'standard' | 'express' | 'pickup';
+  deliveryMethod?: DeliveryMethod;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard' }) => {
-  const { items, calculateTotals } = useCartStore();
-  const { subtotal, discount } = calculateTotals();
-
-  const qualifiesFreeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
-  const shipping =
-    deliveryMethod === 'pickup' ? 0 : qualifiesFreeDelivery ? 0 : SHIPPING_FEES[deliveryMethod];
-  const vat = Math.round(subtotal * VAT_RATE);
-  const total = subtotal + shipping + vat;
+  const { items } = useCartStore();
+  const { subtotal, discount, shippingFee, vatAmount, total } = calculateCheckoutPricing(
+    items,
+    deliveryMethod
+  );
 
   return (
     <div
@@ -47,7 +37,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
         top: '88px',
       }}
     >
-      {/* Header */}
       <div
         style={{
           padding: '16px 20px',
@@ -63,7 +52,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
         </p>
       </div>
 
-      {/* Items */}
       <div
         style={{
           padding: '16px 20px',
@@ -74,7 +62,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
       >
         {items.map((item) => (
           <div key={item.id} style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-            {/* Image placeholder */}
             <div
               style={{
                 width: '48px',
@@ -139,7 +126,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
         ))}
       </div>
 
-      {/* Totals */}
       <div style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -162,16 +148,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
               style={{
                 fontSize: '13px',
                 fontWeight: 600,
-                color: shipping === 0 ? colors.primary : colors.secondary,
+                color: shippingFee === 0 ? colors.primary : colors.secondary,
               }}
             >
-              {shipping === 0 ? 'FREE' : formatPrice(shipping)}
+              {shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '13px', color: colors.textMuted }}>VAT (7.5%)</span>
             <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-              {formatPrice(vat)}
+              {formatPrice(vatAmount)}
             </span>
           </div>
         </div>

@@ -29,12 +29,12 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
   onSubmit,
 }) => {
   const labels: Record<string, string> = {
-    paystack: 'Pay with Paystack',
-    transfer: 'Place Order — Pay via Transfer',
     card: 'Pay with Card',
+    bank_transfer: 'Pay with Bank Transfer',
+    ussd: 'Pay with USSD',
   };
 
-  const label = labels[paymentMethod] ?? 'Place Order';
+  const label = labels[paymentMethod] ?? 'Continue to Payment';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -111,7 +111,6 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         )}
       </button>
 
-      {/* Trust indicators */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
         {['🔒 Secure', '✓ Encrypted', '🛡️ Protected'].map((item) => (
           <span key={item} style={{ fontSize: '11px', color: colors.textMuted }}>

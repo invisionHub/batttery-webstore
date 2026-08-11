@@ -1,7 +1,17 @@
-import { deliveryConfig } from '../constants';
-export const deliveryDetails = (deliveryMethod: string, subtotal: number) => {
-    const shipping = deliveryMethod === 'pickup' ? 0 : subtotal >= 50000 ? 0 : (deliveryConfig.SHIPPING[ deliveryMethod ] ?? 3500);
-    const total = subtotal + shipping + Math.round(subtotal * deliveryConfig.VAT);
+import {
+  FREE_DELIVERY_THRESHOLD,
+  SHIPPING_FEES,
+  VAT_RATE,
+  type DeliveryMethod,
+} from './pricing';
 
-    return total
-}
+export const deliveryDetails = (deliveryMethod: DeliveryMethod, subtotal: number) => {
+  const shipping =
+    deliveryMethod === 'pickup'
+      ? 0
+      : subtotal >= FREE_DELIVERY_THRESHOLD
+        ? 0
+        : SHIPPING_FEES[deliveryMethod];
+
+  return subtotal + shipping + Math.round(subtotal * VAT_RATE);
+};

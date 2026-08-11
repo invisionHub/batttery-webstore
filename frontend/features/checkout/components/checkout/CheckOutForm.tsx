@@ -4,10 +4,9 @@ import { CheckoutForm, OrderSummary, PaymentButton } from '@/components/checkOut
 import { CheckoutFormData } from '@/schemas/checkoutSchema'
 import { FormProvider, UseFormReturn } from 'react-hook-form'
 
-
 interface ICheckOutFormProps {
     deliveryMethod: "standard" | "express" | "pickup",
-    paymentMethod: "paystack" | "transfer" | "card",
+    paymentMethod: "card" | "bank_transfer" | "ussd",
     methods: UseFormReturn<CheckoutFormData>,
     isLoading: boolean,
     total: number,
@@ -43,4 +42,3 @@ export const CheckOutForm = ({ ...checkOutFormProps }: ICheckOutFormProps) => {
     </FormProvider>
   )
 }
-

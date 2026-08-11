@@ -1,19 +1,11 @@
 import { z } from 'zod';
 
-// ============================================
-// NIGERIAN PHONE VALIDATION
-// Accepts: +2348012345678, 08012345678, 2348012345678
-// ============================================
 const nigerianPhone = z
   .string()
   .min(1, 'Phone number is required')
   .regex(/^(\+?234|0)[789][01]\d{8}$/, 'Enter a valid Nigerian phone number (e.g. 08012345678)');
 
-// ============================================
-// CHECKOUT SCHEMA
-// ============================================
 export const checkoutSchema = z.object({
-  // ── Personal info ──
   firstName: z
     .string()
     .min(1, 'First name is required')
@@ -32,7 +24,6 @@ export const checkoutSchema = z.object({
 
   phone: nigerianPhone,
 
-  // ── Delivery address ──
   address: z
     .string()
     .min(1, 'Street address is required')
@@ -48,23 +39,19 @@ export const checkoutSchema = z.object({
 
   state: z.string().min(1, 'Please select a state'),
 
-  // ── Delivery & payment ──
   deliveryMethod: z.enum(['standard', 'express', 'pickup'], {
     error: 'Please select a delivery method',
   }),
 
-  paymentMethod: z.enum(['paystack', 'transfer', 'card'], {
+  paymentMethod: z.enum(['card', 'bank_transfer', 'ussd'], {
     error: 'Please select a payment method',
   }),
 
-  // ── Optional ──
   notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
 });
 
-// Infer TypeScript type from schema
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
-// Default values
 export const checkoutDefaultValues: CheckoutFormData = {
   firstName: '',
   lastName: '',
@@ -74,6 +61,6 @@ export const checkoutDefaultValues: CheckoutFormData = {
   city: '',
   state: '',
   deliveryMethod: 'standard',
-  paymentMethod: 'paystack',
+  paymentMethod: 'card',
   notes: '',
 };

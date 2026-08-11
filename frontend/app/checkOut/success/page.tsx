@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const colors = {
   primary: '#CC0000',
@@ -10,18 +11,120 @@ const colors = {
   border: '#E5E7EB',
   bgLight: '#F9FAFB',
   textMuted: '#6B7280',
+  success: '#166534',
+  warning: '#92400E',
+};
+
+type CheckoutResultState = {
+  loading: boolean;
+  ok: boolean;
+  title: string;
+  description: string;
+  orderId?: string;
 };
 
 export default function CheckoutSuccessPage() {
-  const [orderNumber, setOrderNumber] = useState('');
+  const searchParams = useSearchParams();
+  const reference = searchParams.get('reference') ?? '';
+  const paymentStatus = searchParams.get('status') ?? '';
+  const orderIdFromQuery = searchParams.get('orderId') ?? undefined;
+
+  const initialState = useMemo<CheckoutResultState>(() => {
+    if (paymentStatus === 'mock') {
+      return {
+        loading: true,
+        ok: true,
+        title: 'Confirming your payment...',
+        description: 'Please wait while we verify your payment and process your confirmation email.',
+        orderId: orderIdFromQuery,
+      };
+    }
+
+    return {
+      loading: true,
+      ok: true,
+      title: 'Verifying your payment...',
+      description: 'Please wait while we confirm your Paystack payment and process your confirmation email.',
+      orderId: orderIdFromQuery,
+    };
+  }, [orderIdFromQuery, paymentStatus]);
+
+  const [state, setState] = useState<CheckoutResultState>(initialState);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setOrderNumber(`JVL-${Date.now().toString().slice(-6)}`);
-    }, 0);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
-  }, []);
+    async function verifyPayment() {
+      if (!reference) {
+        setState({
+          loading: false,
+          ok: false,
+          title: 'Missing payment reference',
+          description: 'We could not verify your payment because the payment reference is missing.',
+          orderId: orderIdFromQuery,
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/payments/callback?reference=${encodeURIComponent(reference)}`);
+        const result = (await response.json()) as {
+          ok: boolean;
+          message: string;
+          orderId?: string;
+          orderStatus?: string;
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!response.ok || !result.ok) {
+          setState({
+            loading: false,
+            ok: false,
+            title: 'Payment verification failed',
+            description: result.message || 'We could not verify your payment yet. Please contact support.',
+            orderId: result.orderId ?? orderIdFromQuery,
+          });
+          return;
+        }
+
+        const paid = result.orderStatus === 'paid';
+
+        setState({
+          loading: false,
+          ok: true,
+          title: paid ? 'Payment confirmed' : 'Payment pending',
+          description: paid
+            ? 'Your payment has been verified successfully and your confirmation email has been processed.'
+            : result.message,
+          orderId: result.orderId ?? orderIdFromQuery,
+        });
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        setState({
+          loading: false,
+          ok: false,
+          title: 'Payment verification failed',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'We could not verify your payment yet. Please contact support.',
+          orderId: orderIdFromQuery,
+        });
+      }
+    }
+
+    void verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orderIdFromQuery, reference]);
 
   return (
     <div
@@ -35,7 +138,7 @@ export default function CheckoutSuccessPage() {
     >
       <div
         style={{
-          maxWidth: '480px',
+          maxWidth: '560px',
           width: '100%',
           margin: '0 auto',
           padding: '40px 24px',
@@ -47,8 +150,8 @@ export default function CheckoutSuccessPage() {
             width: '80px',
             height: '80px',
             borderRadius: '50%',
-            backgroundColor: '#F0FDF4',
-            border: '2px solid #BBF7D0',
+            backgroundColor: state.ok ? '#F0FDF4' : '#FEF2F2',
+            border: `2px solid ${state.ok ? '#BBF7D0' : '#FECACA'}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -56,14 +159,24 @@ export default function CheckoutSuccessPage() {
           }}
         >
           <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" fill={colors.primary} />
-            <path
-              d="M8 12l3 3 5-5"
-              stroke={colors.white}
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <circle cx="12" cy="12" r="10" fill={state.ok ? colors.primary : '#DC2626'} />
+            {state.ok ? (
+              <path
+                d="M8 12l3 3 5-5"
+                stroke={colors.white}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <path
+                d="M9 9l6 6m0-6l-6 6"
+                stroke={colors.white}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           </svg>
         </div>
         <h1
@@ -74,7 +187,7 @@ export default function CheckoutSuccessPage() {
             margin: '0 0 8px 0',
           }}
         >
-          Order Placed Successfully!
+          {state.title}
         </h1>
         <p
           style={{
@@ -84,18 +197,36 @@ export default function CheckoutSuccessPage() {
             lineHeight: 1.7,
           }}
         >
-          Thank you for your order. We will send a confirmation to your email shortly.
+          {state.description}
         </p>
-        <p
-          style={{
-            fontSize: '13px',
-            fontWeight: 700,
-            color: colors.secondary,
-            margin: '0 0 28px 0',
-          }}
-        >
-          Order #{orderNumber}
-        </p>
+        {reference && (
+          <p
+            style={{
+              fontSize: '13px',
+              color: colors.textMuted,
+              margin: '0 0 8px 0',
+            }}
+          >
+            Payment reference: {reference}
+          </p>
+        )}
+        {state.orderId && (
+          <p
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              color: state.ok ? colors.success : colors.warning,
+              margin: '0 0 28px 0',
+            }}
+          >
+            Order #{state.orderId}
+          </p>
+        )}
+        {state.loading && (
+          <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 28px 0' }}>
+            Processing...
+          </p>
+        )}
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
             href="/products"

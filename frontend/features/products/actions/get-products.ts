@@ -1,16 +1,12 @@
 'use server';
 
-import { getAllProducts, getProductBySlug } from '@/lib/repository';
+import { productRepository } from '@/lib/repositories';
 import toCatalogProduct from '../mappers/product-mapper';
-
-// export type ProductFetchResult = {
-//   products: CatalogProduct[];
-//   error: string | null;
-// };
 
 export async function fetchProducts() {
   try {
-    const documents = await getAllProducts();
+    const documents = await productRepository.findAll();
+
     return {
       product: documents.map(toCatalogProduct),
       error: null,
@@ -25,9 +21,9 @@ export async function fetchProducts() {
 
 export async function fetchProductBySlug(slug: string) {
   try {
-    const documents = await getProductBySlug(slug);
+    const document = await productRepository.findBySlug(slug);
 
-    if (!documents) {
+    if (!document) {
       return {
         product: null,
         error: 'Product not found.',
@@ -37,7 +33,7 @@ export async function fetchProductBySlug(slug: string) {
     console.info(`[products] Fetched product with slug: ${slug}`);
 
     return {
-      product: documents.map(toCatalogProduct)[0],
+      product: toCatalogProduct(document),
       error: null,
     };
   } catch (error) {

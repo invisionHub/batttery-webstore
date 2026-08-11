@@ -432,13 +432,21 @@ const CheckoutForm: React.FC = () => {
         <SectionTitle>Payment Method</SectionTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[
-            { value: 'paystack', label: 'Pay with Paystack', desc: 'Card, bank transfer, USSD' },
             {
-              value: 'transfer',
-              label: 'Bank Transfer',
-              desc: 'Direct bank transfer — confirmed manually',
+              value: 'card',
+              label: 'Pay with Card',
+              desc: 'Visa, Mastercard, Verve via Paystack',
             },
-            { value: 'card', label: 'Debit/Credit Card', desc: 'Visa, Mastercard, Verve' },
+            {
+              value: 'bank_transfer',
+              label: 'Pay with Bank Transfer',
+              desc: 'Generate a Paystack transfer account and complete payment securely',
+            },
+            {
+              value: 'ussd',
+              label: 'Pay with USSD',
+              desc: 'Use your bank USSD prompt through Paystack',
+            },
           ].map((opt) => (
             <label
               key={opt.value}

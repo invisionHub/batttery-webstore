@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-import type { Collection, Db, WithId } from 'mongodb';
+import type { Collection, Db, Document, WithId } from 'mongodb';
 import { z } from 'zod';
 import type { Product } from '@/features/products/types/product.type';
 
@@ -149,35 +149,76 @@ export function getOrderItemsCollection(db: Db): Collection<OrderItemDocument> {
   return db.collection<OrderItemDocument>(getMongoConfig().orderItemsCollection);
 }
 
+type MongoIndexKey = Record<string, 1 | -1 | 'text'>;
+
+type MongoIndexSpec = {
+  key: MongoIndexKey;
+  unique?: boolean;
+  name?: string;
+};
+
+function serializeIndexKey(key: MongoIndexKey) {
+  return Object.entries(key)
+    .sort(([leftField], [rightField]) => leftField.localeCompare(rightField))
+    .map(([field, value]) => `${field}:${String(value)}`)
+    .join('|');
+}
+
+async function createMissingIndexes<TSchema extends Document>(
+  collection: Collection<TSchema>,
+  indexSpecs: MongoIndexSpec[]
+) {
+  const existingIndexes = await collection.indexes();
+
+  const missingIndexes = indexSpecs.filter((indexSpec) => {
+    const normalizedKey = serializeIndexKey(indexSpec.key);
+
+    return !existingIndexes.some((existingIndex) => {
+      const existingKey = existingIndex.key as MongoIndexKey;
+      return (
+        serializeIndexKey(existingKey) === normalizedKey &&
+        Boolean(existingIndex.unique) === Boolean(indexSpec.unique)
+      );
+    });
+  });
+
+  if (missingIndexes.length > 0) {
+    await collection.createIndexes(missingIndexes);
+  }
+}
+
 export async function createProductIndexes(collection: Collection<ProductDocument>) {
-  await collection.createIndexes([
-    { key: { sku: 1 }, unique: true },
-    { key: { slug: 1 }, unique: true },
-    { key: { category: 1, subcategory: 1 } },
-    { key: { brand: 1 } },
-    { key: { stockStatus: 1 } },
-    { key: { price: 1 } },
-    { key: { name: 'text', brand: 'text', category: 'text', shortDescription: 'text' } },
+  await createMissingIndexes(collection, [
+    { key: { sku: 1 }, unique: true, name: 'product_sku_unique' },
+    { key: { slug: 1 }, unique: true, name: 'product_slug_unique' },
+    { key: { category: 1, subcategory: 1 }, name: 'product_category_subcategory' },
+    { key: { brand: 1 }, name: 'product_brand' },
+    { key: { stockStatus: 1 }, name: 'product_stock_status' },
+    { key: { price: 1 }, name: 'product_price' },
+    {
+      key: { name: 'text', brand: 'text', category: 'text', shortDescription: 'text' },
+      name: 'product_text_search',
+    },
   ]);
 }
 
 export async function createOrderIndexes(collection: Collection<OrderDocument>) {
-  await collection.createIndexes([
-    { key: { id: 1 }, unique: true },
-    { key: { idempotency_key: 1 }, unique: true },
-    { key: { payment_reference: 1 }, unique: true },
-    { key: { customer_email: 1 } },
-    { key: { status: 1 } },
-    { key: { created_at: -1 } },
+  await createMissingIndexes(collection, [
+    { key: { id: 1 }, unique: true, name: 'order_id_unique' },
+    { key: { idempotency_key: 1 }, unique: true, name: 'order_idempotency_key_unique' },
+    { key: { payment_reference: 1 }, unique: true, name: 'order_payment_reference_unique' },
+    { key: { customer_email: 1 }, name: 'order_customer_email' },
+    { key: { status: 1 }, name: 'order_status' },
+    { key: { created_at: -1 }, name: 'order_created_at_desc' },
   ]);
 }
 
 export async function createOrderItemIndexes(collection: Collection<OrderItemDocument>) {
-  await collection.createIndexes([
-    { key: { id: 1 }, unique: true },
-    { key: { order_id: 1 } },
-    { key: { product_id: 1 } },
-    { key: { order_id: 1, product_id: 1 } },
+  await createMissingIndexes(collection, [
+    { key: { id: 1 }, unique: true, name: 'order_item_id_unique' },
+    { key: { order_id: 1 }, name: 'order_item_order_id' },
+    { key: { product_id: 1 }, name: 'order_item_product_id' },
+    { key: { order_id: 1, product_id: 1 }, name: 'order_item_order_product' },
   ]);
 }
 
@@ -229,7 +270,16 @@ export async function seedProductsToMongo(products: Product[]): Promise<ProductS
   return {
     database: config.dbName,
     collection: config.productsCollection,
-    indexedFields: ['sku', 'slug', 'category', 'subcategory', 'brand', 'stockStatus', 'price', 'textSearch'],
+    indexedFields: [
+      'sku',
+      'slug',
+      'category',
+      'subcategory',
+      'brand',
+      'stockStatus',
+      'price',
+      'textSearch',
+    ],
     inserted: result.upsertedCount,
     matched: result.matchedCount,
     modified: result.modifiedCount,

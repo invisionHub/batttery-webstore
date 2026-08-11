@@ -504,7 +504,7 @@ const CartDrawer: React.FC = () => {
 
               {/* Checkout button */}
               <Link
-                href="/checkout"
+                href="/checkOut"
                 onClick={closeCartDrawer}
                 style={{
                   display: 'flex',

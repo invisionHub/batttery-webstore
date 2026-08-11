@@ -70,7 +70,17 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
 
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div
+      className={className}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        width: '100%',
+        maxWidth: '560px',
+        margin: '0 auto',
+      }}
+    >
       {/* Main image */}
       <div
         onMouseEnter={() => setIsZoomed(true)}
@@ -84,6 +94,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           border: `1px solid ${colors.border}`,
           backgroundColor: colors.bgLight,
           cursor: 'zoom-in',
+          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
         }}
       >
         <div
@@ -130,7 +141,17 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       </div>
 
       {/* Thumbnails */}
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '10px',
+          overflowX: 'auto',
+          paddingBottom: '4px',
+          scrollbarWidth: 'thin',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+        }}
+      >
         {slots.map((_, i) => (
           <button
             key={i}
@@ -139,7 +160,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
             style={{
               width: '72px',
               height: '72px',
-              flexShrink: 0,
+              flex: '0 0 72px',
               borderRadius: '8px',
               overflow: 'hidden',
               border: `2px solid ${activeIndex === i ? colors.primary : colors.border}`,

@@ -149,12 +149,18 @@ export function getOrderItemsCollection(db: Db): Collection<OrderItemDocument> {
   return db.collection<OrderItemDocument>(getMongoConfig().orderItemsCollection);
 }
 
-type MongoIndexKey = Record<string, 1 | -1 | 'text'>;
+type MongoIndexDirection = 1 | -1 | 'text';
+type MongoIndexKey = Record<string, MongoIndexDirection>;
 
 type MongoIndexSpec = {
   key: MongoIndexKey;
   unique?: boolean;
   name?: string;
+};
+
+type ExistingMongoIndex = {
+  key: MongoIndexKey;
+  unique?: boolean;
 };
 
 function serializeIndexKey(key: MongoIndexKey) {
@@ -164,6 +170,23 @@ function serializeIndexKey(key: MongoIndexKey) {
     .join('|');
 }
 
+function hasEquivalentIndex(
+  existingIndex: ExistingMongoIndex,
+  desiredKey: MongoIndexKey,
+  desiredUnique?: boolean
+) {
+  const existingKey = existingIndex.key;
+
+  if (Object.keys(existingKey).length !== Object.keys(desiredKey).length) {
+    return false;
+  }
+
+  const sameKey = serializeIndexKey(existingKey) === serializeIndexKey(desiredKey);
+  const sameUnique = Boolean(existingIndex.unique) === Boolean(desiredUnique);
+
+  return sameKey && sameUnique;
+}
+
 async function createMissingIndexes<TSchema extends Document>(
   collection: Collection<TSchema>,
   indexSpecs: MongoIndexSpec[]
@@ -171,19 +194,14 @@ async function createMissingIndexes<TSchema extends Document>(
   const existingIndexes = await collection.indexes();
 
   const missingIndexes = indexSpecs.filter((indexSpec) => {
-    const normalizedKey = serializeIndexKey(indexSpec.key);
-
-    return !existingIndexes.some((existingIndex) => {
-      const existingKey = existingIndex.key as MongoIndexKey;
-      return (
-        serializeIndexKey(existingKey) === normalizedKey &&
-        Boolean(existingIndex.unique) === Boolean(indexSpec.unique)
-      );
-    });
+    return !existingIndexes.some((existingIndex) =>
+      hasEquivalentIndex(existingIndex as ExistingMongoIndex, indexSpec.key, indexSpec.unique)
+    );
   });
 
   if (missingIndexes.length > 0) {
-    await collection.createIndexes(missingIndexes);
+    const indexDescriptions = missingIndexes as Parameters<Collection<TSchema>['createIndexes']>[0];
+    await collection.createIndexes(indexDescriptions);
   }
 }
 

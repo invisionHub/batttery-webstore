@@ -21,9 +21,11 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           justifyContent: 'space-between',
+          gap: '12px',
           marginBottom: '20px',
+          flexWrap: 'wrap',
         }}
       >
         <div>
@@ -44,9 +46,14 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
           href="/products"
           style={{
             fontSize: '13px',
-            fontWeight: 600,
+            fontWeight: 700,
             color: colors.primary,
             textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.2,
+            paddingBottom: '2px',
           }}
         >
           View all →

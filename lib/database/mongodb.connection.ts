@@ -215,7 +215,6 @@ export async function createProductIndexes(collection: Collection<ProductDocumen
     { key: { price: 1 }, name: 'product_price' },
     {
       key: { name: 'text', brand: 'text', category: 'text', shortDescription: 'text' },
-      name: 'product_text_search',
     },
   ]);
 }

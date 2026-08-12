@@ -45,12 +45,19 @@ export async function POST(request: Request) {
       return NextResponse.json(result, { status: statusCode });
     }
 
-    const origin = new URL(request.url).origin;
-    const payment = await initializePayment(result.paymentReference, result.amount, parsed.data.email, {
-      origin,
-      paymentMethod: parsed.data.paymentMethod,
-      orderId: result.orderId,
-    });
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? new URL(request.url).origin;
+
+    const payment = await initializePayment(
+      result.paymentReference,
+      result.amount,
+      parsed.data.email,
+      {
+        origin,
+        paymentMethod: parsed.data.paymentMethod,
+        orderId: result.orderId,
+      }
+    );
 
     return NextResponse.json(
       {

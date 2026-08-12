@@ -21,7 +21,9 @@ export const ProductLayout = ({ ...productLayoutProps }: IProductLayoutProps) =>
   const { SiderBar, children } = productLayoutProps;
   return (
     <div>
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+      <div
+        style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}
+      >
         <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
           {SiderBar}
         </div>

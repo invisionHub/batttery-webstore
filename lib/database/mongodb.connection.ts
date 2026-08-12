@@ -191,7 +191,19 @@ async function createMissingIndexes<TSchema extends Document>(
   collection: Collection<TSchema>,
   indexSpecs: MongoIndexSpec[]
 ) {
-  const existingIndexes = await collection.indexes();
+  let existingIndexes: unknown[] = [];
+
+  try {
+    existingIndexes = await collection.indexes();
+  } catch (error: unknown) {
+    const isNamespaceNotFound =
+      error instanceof Error &&
+      ('code' in error ? (error as { code?: number }).code === 26 : false);
+
+    if (!isNamespaceNotFound) {
+      throw error;
+    }
+  }
 
   const missingIndexes = indexSpecs.filter((indexSpec) => {
     return !existingIndexes.some((existingIndex) =>

@@ -20,27 +20,14 @@ const colors = {
 export const ProductLayout = ({ ...productLayoutProps }: IProductLayoutProps) => {
   const { SiderBar, children } = productLayoutProps;
   return (
-    <div>
-      <div
-        style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}
-      >
+    <div className="">
+      <div className="flex gap-3">
         <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
           {SiderBar}
         </div>
-
-        <div style={{ flex: 1, minWidth: 0 }} className="flex flex-col">
+        <div className="w-full">
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              marginBottom: '16px',
-              padding: '10px 14px',
-              backgroundColor: colors.white,
-              borderRadius: '10px',
-              border: `1px solid ${colors.border}`,
-            }}
+            className={`flex items-center justify-between gap-3 mb-4 ml-6 mr-6 pt-2 pb-3.5 pl-3 pr-3 rounded-[10px] bg-[${colors.white}] border-s-0  border-[${colors.border}]`}
           >
             {children}
           </div>

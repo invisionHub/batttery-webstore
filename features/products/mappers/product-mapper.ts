@@ -1,9 +1,10 @@
-import type { ProductRecord } from '@/lib/database/mongodb.connection';
-import type { CatalogProduct, Product as ProductEntity } from '@/features/products/types/product.type';
+import { Product } from '@/database/types';
+import type {
+  CatalogProduct,
+  Product as ProductEntity,
+} from '@/features/products/types/product.type';
 
-type ProductLike = ProductRecord | ProductEntity | Record<string, unknown>;
-
-export default function toCatalogProduct(product: ProductLike): CatalogProduct {
+export default function toCatalogProduct(product: Product): CatalogProduct {
   const price = typeof product.price === 'number' ? product.price : 0;
   const stockStatus = product.stockStatus === 'In Stock' ? 'In Stock' : 'Out of Stock';
   const images = Array.isArray(product.images)
@@ -19,7 +20,7 @@ export default function toCatalogProduct(product: ProductLike): CatalogProduct {
     typeof product.shortDescription === 'string' ? product.shortDescription : '';
 
   return {
-    id: sku,
+    id: product.id,
     name,
     slug,
     price,

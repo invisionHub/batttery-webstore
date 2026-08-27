@@ -147,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
           style={{ width: '100px', height: '100px' }}
         >
           <ProductBadge badge={product.badge} />
-          <Link href={`/products/${product.slug}`} className="block w-full h-full">
+          <Link href={`/products/${product.id}`} className="block w-full h-full">
             <ProductImagePlaceholder name={product.name!} />
           </Link>
         </div>

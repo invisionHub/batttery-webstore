@@ -1,21 +1,18 @@
 import { notFound } from 'next/navigation';
-import { fetchProductBySlug, fetchProducts } from '@/features/products/actions/get-products';
+import { fetchProductById, fetchProducts } from '@/features/products/actions/get-products';
 import { getRelatedProducts } from '@/features/products/bussiness/get-related-products';
-import {
-  ProductDetailErrorView,
-  ProductDetailView,
-} from '@/features/products/views/detail';
+import { ProductDetailErrorView, ProductDetailView } from '@/features/products/views/detail';
 
 type ProductDetailPageProps = {
   params: Promise<{
-    slug: string;
+    id: string;
   }>;
 };
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { slug } = await params;
+  const { id } = await params;
   const [{ product, error }, { product: products }] = await Promise.all([
-    fetchProductBySlug(slug),
+    fetchProductById(id),
     fetchProducts(),
   ]);
 

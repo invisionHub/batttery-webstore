@@ -1,17 +1,18 @@
 'use server';
 
-import { productRepository } from '@/lib/repositories';
+import { productRepository } from '@/database/repository/products/product.repository';
 import toCatalogProduct from '../mappers/product-mapper';
 
 export async function fetchProducts() {
   try {
-    const documents = await productRepository.findAll();
+    const documents = await productRepository.getAllProducts();
 
     return {
       product: documents.map(toCatalogProduct),
       error: null,
     };
   } catch (error) {
+    console.log(error);
     return {
       product: [],
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -19,9 +20,9 @@ export async function fetchProducts() {
   }
 }
 
-export async function fetchProductBySlug(slug: string) {
+export async function fetchProductById(id: string) {
   try {
-    const document = await productRepository.findBySlug(slug);
+    const document = await productRepository.findById(id);
 
     if (!document) {
       return {
@@ -30,10 +31,10 @@ export async function fetchProductBySlug(slug: string) {
       };
     }
 
-    console.info(`[products] Fetched product with slug: ${slug}`);
+    console.info(`[products] Fetched product with id: ${id}`);
 
     return {
-      product: toCatalogProduct(document),
+      product: toCatalogProduct(document[0]),
       error: null,
     };
   } catch (error) {

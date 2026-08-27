@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
-import { formatPrice } from '@/lib/mock-data';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -94,7 +93,7 @@ const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>[
         )}
 
         <p style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary, margin: 0 }}>
-          {formatPrice(item.price)}
+          {item.price}
         </p>
 
         {/* Quantity stepper */}
@@ -468,7 +467,7 @@ const CartDrawer: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', color: colors.textMuted }}>Subtotal</span>
               <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-                {formatPrice(subtotal)}
+                {subtotal}
               </span>
             </div>
 
@@ -477,7 +476,7 @@ const CartDrawer: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '13px', color: colors.textMuted }}>Savings</span>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
-                  -{formatPrice(discount)}
+                  -{discount}
                 </span>
               </div>
             )}
@@ -498,7 +497,7 @@ const CartDrawer: React.FC = () => {
                   Total
                 </span>
                 <span style={{ fontSize: '15px', fontWeight: 900, color: colors.secondary }}>
-                  {formatPrice(total)}
+                  {total}
                 </span>
               </div>
 

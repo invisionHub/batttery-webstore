@@ -1,4 +1,5 @@
 export interface Product {
+  id: string;
   sku: string;
   slug: string;
   name: string;
@@ -14,12 +15,10 @@ export interface Product {
   images: string[];
 }
 
-
-
 export type CatalogProduct = Partial<Product> & {
-  id: string
-  originalPrice: number
-  rating: number
-  reviewCount: number
-  badge?: 'best-seller'
-}
+  id: string;
+  originalPrice: number;
+  rating: number;
+  reviewCount: number;
+  badge?: 'best-seller';
+};

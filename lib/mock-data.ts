@@ -221,14 +221,14 @@ export const mockCategories: Category[] = [
     id: 'cat-002',
     name: 'Lithium Batteries',
     slug: 'lithium-batteries',
-    image: '/images/categories/led-bulb.jpg',
+    image: '/images/categories/lithium-batteries.jpg',
     productCount: 18,
   },
   {
     id: 'cat-003',
     name: 'Switches & Sockets',
     slug: 'switches-sockets',
-    image: '/images/categories/switches-sockets.png',
+    image: '/images/categories/switches-sockets.jpg',
     productCount: 56,
   },
   {
@@ -242,14 +242,14 @@ export const mockCategories: Category[] = [
     id: 'cat-005',
     name: 'Electric Cables',
     slug: 'electric-cables',
-    image: '/images/categories/charge-controller.jpg',
+    image: '/images/categories/electric-cables.jpg',
     productCount: 31,
   },
   {
     id: 'cat-006',
     name: 'Inverters',
     slug: 'inverters',
-    image: '/images/categories/schneider-avatar-socket.jpg',
+    image: '/images/categories/inverters.jpg',
     productCount: 15,
   },
   {

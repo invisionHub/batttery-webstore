@@ -54,8 +54,7 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           const existing = state.items.find((item) => item.id === product.id);
 
-          if (existing)
-          {
+          if (existing) {
             return {
               items: state.items.map((item) =>
                 item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
@@ -73,7 +72,7 @@ export const useCartStore = create<CartState>()(
             color,
           };
 
-          return { items: [ ...state.items, newItem ] };
+          return { items: [...state.items, newItem] };
         });
       },
 
@@ -87,8 +86,7 @@ export const useCartStore = create<CartState>()(
       // ── UPDATE QUANTITY ──
       // Quantity of 0 or less removes the item from cart
       updateQuantity: (id, quantity) => {
-        if (quantity <= 0)
-        {
+        if (quantity <= 0) {
           get().removeProduct(id);
           return;
         }
@@ -108,8 +106,7 @@ export const useCartStore = create<CartState>()(
         const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
         const discount = items.reduce((sum, item) => {
-          if (item.originalPrice)
-          {
+          if (item.originalPrice) {
             return sum + (item.originalPrice - item.price) * item.quantity;
           }
           return sum;

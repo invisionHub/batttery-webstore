@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+
+import { useCartStore } from '@/store';
 
 const colors = {
   primary: '#CC0000',
@@ -96,6 +98,10 @@ export default function CheckoutSuccessView() {
         }
 
         const paid = result.orderStatus === 'paid';
+
+        if (paid) {
+          useCartStore.getState().clearCart();
+        }
 
         setState({
           loading: false,

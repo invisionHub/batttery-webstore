@@ -29,7 +29,7 @@ interface CheckoutViewProps {
 }
 
 export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
-  const { isLoading, items, router, subtotal, clearCart, setIsLoading } = useCheckOut();
+  const { isLoading, items, router, subtotal, setIsLoading } = useCheckOut();
   const { steps, delivery } = deliveryConfig;
 
   const methods = useForm<CheckoutFormData>({
@@ -90,8 +90,6 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
         router.push(`${pendingUrl.pathname}${pendingUrl.search}`);
         return;
       }
-
-      clearCart();
 
       const successUrl = new URL('/checkOut/success', window.location.origin);
       successUrl.searchParams.set('reference', result.paymentReference ?? '');

@@ -3,8 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
-import { formatPrice } from '@/lib/mock-data';
-import { calculateCheckoutPricing, type DeliveryMethod } from '@/features/checkout/bussiness/pricing';
+import { formatPrice } from '@/utils/utils';
 
 const colors = {
   primary: '#CC0000',
@@ -16,15 +15,13 @@ const colors = {
 };
 
 interface OrderSummaryProps {
-  deliveryMethod?: DeliveryMethod;
+  pricing: { subTotal: number; total: number; deliveryPrice: number };
 }
 
-const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard' }) => {
+const OrderSummary: React.FC<OrderSummaryProps> = ({ pricing }) => {
   const { items } = useCartStore();
-  const { subtotal, discount, shippingFee, vatAmount, total } = calculateCheckoutPricing(
-    items,
-    deliveryMethod
-  );
+
+  const { subTotal, total, deliveryPrice } = pricing;
 
   return (
     <div
@@ -120,7 +117,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
             <p
               style={{ fontSize: '12px', fontWeight: 700, color: colors.secondary, flexShrink: 0 }}
             >
-              {formatPrice(item.price * item.quantity)}
+              {formatPrice(item.price)}
             </p>
           </div>
         ))}
@@ -131,70 +128,49 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ deliveryMethod = 'standard'
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '13px', color: colors.textMuted }}>Subtotal</span>
             <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-              {formatPrice(subtotal)}
-            </span>
-          </div>
-          {discount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', color: colors.textMuted }}>Savings</span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
-                -{formatPrice(discount)}
-              </span>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '13px', color: colors.textMuted }}>Shipping</span>
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                color: shippingFee === 0 ? colors.primary : colors.secondary,
-              }}
-            >
-              {shippingFee === 0 ? 'FREE' : formatPrice(shippingFee)}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '13px', color: colors.textMuted }}>VAT (7.5%)</span>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-              {formatPrice(vatAmount)}
+              {formatPrice(subTotal)}
             </span>
           </div>
         </div>
-
-        <div
-          style={{
-            borderTop: `1px solid ${colors.border}`,
-            paddingTop: '12px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-          }}
-        >
-          <span style={{ fontSize: '15px', fontWeight: 800, color: colors.secondary }}>Total</span>
-          <span style={{ fontSize: '20px', fontWeight: 900, color: colors.secondary }}>
-            {formatPrice(total)}
-          </span>
-        </div>
-        <p style={{ fontSize: '11px', color: colors.textMuted, margin: '4px 0 0 0' }}>
-          Including VAT
-        </p>
-
-        <Link
-          href="/cart"
-          style={{
-            display: 'block',
-            textAlign: 'center',
-            fontSize: '12px',
-            color: colors.primary,
-            textDecoration: 'none',
-            marginTop: '12px',
-            fontWeight: 600,
-          }}
-        >
-          ← Edit Cart
-        </Link>
       </div>
+      <div style={{ padding: '16px 20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '13px', color: colors.textMuted }}>DeliveryFee</span>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
+              {formatPrice(deliveryPrice ? deliveryPrice : 0.0)}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          borderTop: `1px solid ${colors.border}`,
+          paddingTop: '12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+        }}
+      >
+        <span style={{ fontSize: '15px', fontWeight: 800, color: colors.secondary }}>Total</span>
+        <span style={{ fontSize: '20px', fontWeight: 900, color: colors.secondary }}>
+          {formatPrice(total)}
+        </span>
+      </div>
+      <Link
+        href="/cart"
+        style={{
+          display: 'block',
+          textAlign: 'center',
+          fontSize: '12px',
+          color: colors.primary,
+          textDecoration: 'none',
+          marginTop: '12px',
+          fontWeight: 600,
+        }}
+      >
+        ← Edit Cart
+      </Link>
     </div>
   );
 };

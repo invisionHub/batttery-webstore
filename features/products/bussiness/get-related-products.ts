@@ -1,10 +1,6 @@
-import type { CatalogProduct } from '../types/product.type';
+import { Product } from '@/database/types';
 
-export function getRelatedProducts(
-  currentProduct: CatalogProduct,
-  products: CatalogProduct[],
-  limit = 4
-) {
+export function getRelatedProducts(currentProduct: Product, products: Product[], limit = 4) {
   const sameCategory = products.filter(
     (product) =>
       product.id !== currentProduct.id &&

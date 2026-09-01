@@ -1,7 +1,7 @@
 'use client';
 
+import { Product } from '@/database/types';
 import React, { useState } from 'react';
-import type { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -16,12 +16,12 @@ const colors = {
 };
 
 interface SpecificationsTableProps {
-  product: CatalogProduct;
+  product: Product;
   className?: string;
 }
 
 // Demo spec data — keyed loosely off category, replace with real data later
-const getSpecs = (product: CatalogProduct): { label: string; value: string }[] => [
+const getSpecs = (product: Product): { label: string; value: string }[] => [
   {
     label: 'Brand',
     value:
@@ -70,7 +70,6 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
   const tabs = [
     { id: 'description' as const, label: 'Description' },
     { id: 'specs' as const, label: 'Specifications' },
-    { id: 'reviews' as const, label: `Reviews (${product.reviewCount ?? 0})` },
   ];
 
   return (
@@ -121,7 +120,8 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
               Product Overview
             </h3>
             <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.8, margin: 0 }}>
-              {product.shortDescription ?? 'Built to last with industrial-grade components, this product is designed for both residential and commercial use.'}{' '}
+              {product.shortDescription ??
+                'Built to last with industrial-grade components, this product is designed for both residential and commercial use.'}{' '}
               Every unit is tested for safety and durability before leaving the factory.
             </p>
           </div>
@@ -251,92 +251,6 @@ const SpecificationsTable: React.FC<SpecificationsTableProps> = ({ product, clas
       )}
 
       {/* Reviews tab — placeholder summary, full reviews come later */}
-      {activeTab === 'reviews' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Rating summary card */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '24px',
-              padding: '20px',
-              backgroundColor: colors.bgLight,
-              borderRadius: '12px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100px',
-                height: '100px',
-                borderRadius: '12px',
-                backgroundColor: colors.secondary,
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ fontSize: '28px', fontWeight: 900, color: colors.white }}>
-                {product.rating ?? 0}
-              </span>
-              <div style={{ display: 'flex', gap: '1px', marginTop: '2px' }}>
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <svg
-                    key={s}
-                    width="9"
-                    height="9"
-                    viewBox="0 0 24 24"
-                    fill={s <= Math.round(product.rating ?? 0) ? '#F59E0B' : 'none'}
-                    stroke="#F59E0B"
-                    strokeWidth="2"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {[5, 4, 3, 2, 1].map((star) => {
-                const pct =
-                  star === Math.round(product.rating ?? 0)
-                    ? 70
-                    : star === Math.round(product.rating ?? 0) - 1
-                      ? 20
-                      : 5;
-                return (
-                  <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: colors.textMuted, width: '12px' }}>
-                      {star}
-                    </span>
-                    <div
-                      style={{
-                        flex: 1,
-                        height: '6px',
-                        borderRadius: '3px',
-                        backgroundColor: colors.border,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{ width: `${pct}%`, height: '100%', backgroundColor: '#F59E0B' }}
-                      />
-                    </div>
-                    <span style={{ fontSize: '11px', color: colors.textMuted, width: '24px' }}>
-                      {pct}%
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <p style={{ fontSize: '13px', color: colors.textMuted, textAlign: 'center', margin: 0 }}>
-            Full review list and submission form coming in a future update.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

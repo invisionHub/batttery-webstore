@@ -121,7 +121,7 @@ export const ProductNotFound = ({ error }: { error: unknown }) => {
           margin: '0 0 8px 0',
         }}
       >
-        {error}
+        {error as string}
       </h3>
       <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
         Try adjusting your filters or search term

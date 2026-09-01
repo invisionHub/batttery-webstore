@@ -1,14 +1,13 @@
 'use server';
 
 import { productRepository } from '@/database/repository/products/product.repository';
-import toCatalogProduct from '../mappers/product-mapper';
 
 export async function fetchProducts() {
   try {
-    const documents = await productRepository.getAllProducts();
+    const products = await productRepository.getAllProducts();
 
     return {
-      product: documents.map(toCatalogProduct),
+      product: products,
       error: null,
     };
   } catch (error) {
@@ -22,9 +21,9 @@ export async function fetchProducts() {
 
 export async function fetchProductById(id: string) {
   try {
-    const document = await productRepository.findById(id);
+    const product = await productRepository.findById(id);
 
-    if (!document) {
+    if (!product) {
       return {
         product: null,
         error: 'Product not found.',
@@ -34,7 +33,7 @@ export async function fetchProductById(id: string) {
     console.info(`[products] Fetched product with id: ${id}`);
 
     return {
-      product: toCatalogProduct(document[0]),
+      product,
       error: null,
     };
   } catch (error) {

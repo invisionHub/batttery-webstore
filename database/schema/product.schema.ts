@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, uuid, decimal } from 'drizzle-orm/pg-core';
 
 export const productTable = pgTable('products', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -8,10 +8,10 @@ export const productTable = pgTable('products', {
   brand: text('brand'),
   category: text('category'),
   subcategory: text('subcategory'),
-  price: numeric('price'),
-  minPrice: numeric('minPrice'),
-  maxPrice: numeric('maxPrice'),
-  pricePoints: numeric('pricePoints'),
+  price: decimal('price'),
+  minPrice: decimal('minPrice'),
+  maxPrice: decimal('maxPrice'),
+  pricePoints: decimal('pricePoints'),
   shortDescription: text('shortDescription'),
   stockStatus: text('stockStatus'),
   images: text('images'),

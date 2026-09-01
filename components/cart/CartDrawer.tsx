@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
+import { formatPrice } from '@/utils/utils';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -93,7 +94,7 @@ const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>[
         )}
 
         <p style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary, margin: 0 }}>
-          {item.price}
+          {formatPrice(item.price)}
         </p>
 
         {/* Quantity stepper */}
@@ -216,7 +217,7 @@ const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>[
 const CartDrawer: React.FC = () => {
   const { isCartDrawerOpen, closeCartDrawer } = useUIStore();
   const { items, calculateTotals, clearCart } = useCartStore();
-  const { subtotal, discount, itemCount, total } = calculateTotals();
+  const { subtotal, itemCount, total } = calculateTotals();
 
   // Close on Escape key
   useEffect(() => {
@@ -467,23 +468,23 @@ const CartDrawer: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', color: colors.textMuted }}>Subtotal</span>
               <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-                {subtotal}
+                {formatPrice(subtotal)}
               </span>
             </div>
 
             {/* Discount */}
-            {discount > 0 && (
+            {/* {discount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '13px', color: colors.textMuted }}>Savings</span>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
                   -{discount}
                 </span>
               </div>
-            )}
+            )} */}
 
             {/* Shipping note */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', color: colors.textMuted }}>Shipping</span>
+              <span style={{ fontSize: '13px', color: colors.textMuted }}>Delivery</span>
               <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
                 Calculated at checkout
               </span>
@@ -497,7 +498,7 @@ const CartDrawer: React.FC = () => {
                   Total
                 </span>
                 <span style={{ fontSize: '15px', fontWeight: 900, color: colors.secondary }}>
-                  {total}
+                  {formatPrice(total)}
                 </span>
               </div>
 

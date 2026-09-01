@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ProductCard } from '@/components/product';
-import type { CatalogProduct } from '@/features/products/types/product.type';
+import { Product } from '@/database/types';
 
 const colors = {
   primary: '#CC0000',
@@ -8,7 +8,7 @@ const colors = {
 };
 
 type RelatedProductsSectionProps = {
-  products: CatalogProduct[];
+  products: Product[];
 };
 
 export function RelatedProductsSection({ products }: RelatedProductsSectionProps) {

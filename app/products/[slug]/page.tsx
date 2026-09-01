@@ -5,14 +5,14 @@ import { ProductDetailErrorView, ProductDetailView } from '@/features/products/v
 
 type ProductDetailPageProps = {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 };
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { id } = await params;
+  const { slug } = await params;
   const [{ product, error }, { product: products }] = await Promise.all([
-    fetchProductById(id),
+    fetchProductById(slug),
     fetchProducts(),
   ]);
 

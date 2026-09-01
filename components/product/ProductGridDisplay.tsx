@@ -1,9 +1,9 @@
 import React from 'react';
 import ProductCard from './ProductCard';
-import { CatalogProduct } from '@/features/products/types/product.type';
+import { Product } from '@/database/types';
 
 interface ProductGridDisplayProps {
-  products: CatalogProduct[];
+  products: Product[];
   view: 'grid' | 'list';
 }
 

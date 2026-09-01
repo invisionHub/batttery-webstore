@@ -1,8 +1,8 @@
 'use client';
 
+import { CheckoutFormData, nigerianStates } from '@/schemas/checkoutSchema';
 import React from 'react';
-import { useFormContext } from 'react-hook-form';
-import type { CheckoutFormData } from '@/schemas/checkoutSchema';
+import { FormState, UseFormRegister } from 'react-hook-form';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -17,46 +17,6 @@ const colors = {
   error: '#EF4444',
   errorBg: '#FEF2F2',
 };
-
-const nigerianStates = [
-  'Abia',
-  'Adamawa',
-  'Akwa Ibom',
-  'Anambra',
-  'Bauchi',
-  'Bayelsa',
-  'Benue',
-  'Borno',
-  'Cross River',
-  'Delta',
-  'Ebonyi',
-  'Edo',
-  'Ekiti',
-  'Enugu',
-  'FCT',
-  'Gombe',
-  'Imo',
-  'Jigawa',
-  'Kaduna',
-  'Kano',
-  'Katsina',
-  'Kebbi',
-  'Kogi',
-  'Kwara',
-  'Lagos',
-  'Nasarawa',
-  'Niger',
-  'Ogun',
-  'Ondo',
-  'Osun',
-  'Oyo',
-  'Plateau',
-  'Rivers',
-  'Sokoto',
-  'Taraba',
-  'Yobe',
-  'Zamfara',
-];
 
 // ─────────────────────────────────────────
 // REUSABLE FIELD WRAPPER
@@ -143,16 +103,21 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 // ─────────────────────────────────────────
 // CHECKOUT FORM — uses React Hook Form context
 // ─────────────────────────────────────────
-const CheckoutForm: React.FC = () => {
-  const {
-    register,
-    watch,
-    formState: { errors },
-  } = useFormContext<CheckoutFormData>();
 
-  const deliveryMethod = watch('deliveryMethod');
-  const paymentMethod = watch('paymentMethod');
+interface ICheckOutProps {
+  formState: FormState<CheckoutFormData>;
+  register: UseFormRegister<CheckoutFormData>;
+  deliveryMethod: 'standard' | 'express' | 'pickup';
+  paymentMethod: 'card' | 'bank_transfer' | 'ussd';
+}
 
+const CheckoutForm: React.FC<ICheckOutProps> = ({
+  deliveryMethod,
+  formState,
+  paymentMethod,
+  register,
+}) => {
+  const { errors } = formState;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* ── Personal Information ── */}

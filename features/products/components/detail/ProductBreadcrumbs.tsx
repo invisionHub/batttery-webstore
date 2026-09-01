@@ -1,5 +1,5 @@
+import { Product } from '@/database/types';
 import Link from 'next/link';
-import type { CatalogProduct } from '@/features/products/types/product.type';
 
 const colors = {
   secondary: '#0D1B2A',
@@ -7,7 +7,7 @@ const colors = {
 };
 
 type ProductBreadcrumbsProps = {
-  product: CatalogProduct;
+  product: Product;
 };
 
 export function ProductBreadcrumbs({ product }: ProductBreadcrumbsProps) {

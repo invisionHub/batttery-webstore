@@ -1,13 +1,12 @@
 'use client';
-import React from 'react';
-import { CatalogProduct } from '../../types/product.type';
 import { ProductCard } from '@/components/product';
 import { GridListArrangement, ProductNotFound } from './ProductToolBar';
 import Pagination from '@/components/ui/Pagination';
+import { Product } from '@/database/types';
 
 interface IProductGrid {
   productLength: number;
-  paginatedProducts: CatalogProduct[];
+  paginatedProducts: Product[];
   view: 'grid' | 'list';
   setView: (v: 'grid' | 'list') => void;
   totalPages: number;

@@ -1,9 +1,9 @@
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductDetails from '@/components/product/ProductDetails';
 import SpecificationsTable from '@/components/product/SpecificationsTable';
-import type { CatalogProduct } from '@/features/products/types/product.type';
 import { ProductBreadcrumbs } from '@/features/products/components/detail/ProductBreadcrumbs';
 import { RelatedProductsSection } from '@/features/products/components/detail/RelatedProductsSection';
+import { Product } from '@/database/types';
 
 const colors = {
   white: '#FFFFFF',
@@ -12,8 +12,8 @@ const colors = {
 };
 
 type ProductDetailViewProps = {
-  product: CatalogProduct;
-  relatedProducts: CatalogProduct[];
+  product: Product;
+  relatedProducts: Product[];
 };
 
 export function ProductDetailView({ product, relatedProducts }: ProductDetailViewProps) {
@@ -35,7 +35,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: '40px' }}>
-            <ProductGallery productName={product.name ?? 'Product'} images={product.images} />
+            <ProductGallery productName={product.name ?? 'Product'} images={[product.images!]} />
             <ProductDetails product={product} />
           </div>
         </div>
@@ -49,7 +49,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             marginBottom: '32px',
           }}
         >
-          <SpecificationsTable product={product} />
+          {/* <SpecificationsTable product={product} /> */}
         </div>
 
         <RelatedProductsSection products={relatedProducts} />

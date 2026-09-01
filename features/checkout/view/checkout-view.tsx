@@ -1,33 +1,35 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import {
-  checkoutSchema,
   checkoutDefaultValues,
+  checkoutSchema,
   type CheckoutFormData,
 } from '@/schemas/checkoutSchema';
+
 import { useCheckOut } from '../hook/useCheckOut';
 import { deliveryConfig } from '../constants';
 import { StepIndicator } from '../components/checkout/StepIndicator';
 import { FormErrorFormat } from '../components/checkout/FormErrorFormat';
 import { CheckOutForm } from '../components/checkout/CheckOutForm';
 import { CheckOutLayout } from '../components/checkout/CheckOutLayout';
-import { calculateCheckoutPricing } from '../bussiness/pricing';
 
 export default function CheckoutView() {
   const { isLoading, items, router, subtotal, clearCart, setIsLoading } = useCheckOut();
-  const { steps } = deliveryConfig;
+  const { steps, delivery } = deliveryConfig;
 
   const methods = useForm<CheckoutFormData>({
-    resolver: zodResolver(checkoutSchema as never),
+    resolver: zodResolver(checkoutSchema) as unknown as Resolver<CheckoutFormData>,
     defaultValues: checkoutDefaultValues,
     mode: 'onBlur',
   });
 
   const deliveryMethod = methods.watch('deliveryMethod');
   const paymentMethod = methods.watch('paymentMethod');
-  const total = calculateCheckoutPricing(items, deliveryMethod).total;
+
+  const total = deliveryMethod ? delivery[deliveryMethod] + subtotal : subtotal;
 
   const onSubmit = methods.handleSubmit(async (values) => {
     if (items.length === 0) {
@@ -68,7 +70,6 @@ export default function CheckoutView() {
         });
         return;
       }
-
       clearCart();
 
       if (result.payment?.paymentUrl) {
@@ -108,7 +109,7 @@ export default function CheckoutView() {
         isLoading={isLoading}
         methods={methods}
         onSubmit={onSubmit}
-        total={total}
+        pricing={{ subTotal: subtotal, total, deliveryPrice: delivery[deliveryMethod] }}
       />
     </CheckOutLayout>
   );

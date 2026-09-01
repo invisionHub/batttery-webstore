@@ -1,41 +1,30 @@
-
-import {  CatalogProduct } from '../types/product.type';
+import { Product } from '@/database/types';
 import { normalizeValue } from '../utils/normalize-values';
 
+export function generateFilterOptions(products: Product[], key: 'brand' | 'category') {
+  const counts = new Map<string, { name: string; count: number }>();
 
-export function generateFilterOptions (
-    products: CatalogProduct[],
-    key: 'brand' | 'category'
-) {
+  products.forEach((product) => {
+    const value = product[key]?.trim();
 
-    const counts = new Map<
-        string,
-        { name: string; count: number }
-    >();
+    if (!value) return;
 
-    products.forEach(product => {
+    const normalized = normalizeValue(value);
 
-        const value = product[ key ]?.trim();
+    const existing = counts.get(normalized);
 
-        if (!value) return;
-
-        const normalized = normalizeValue(value);
-
-        const existing = counts.get(normalized);
-
-        counts.set(normalized, {
-            name: value,
-            count: (existing?.count ?? 0) + 1,
-        });
-
+    counts.set(normalized, {
+      name: value,
+      count: (existing?.count ?? 0) + 1,
     });
+  });
 
-    return [ ...counts.entries() ]
-        .sort(([ a ], [ b ]) => a.localeCompare(b))
-        .map(([ id, option ], index) => ({
-            id: `${ id }-${ index }`,
-            name: option.name,
-            value: option.name,
-            count: option.count,
-        }));
+  return [...counts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, option], index) => ({
+      id: `${id}-${index}`,
+      name: option.name,
+      value: option.name,
+      count: option.count,
+    }));
 }

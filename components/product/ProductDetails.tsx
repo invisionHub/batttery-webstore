@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { formatPrice } from '@/lib/mock-data';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
-import { CatalogProduct } from '@/features/products/types/product.type';
+import { Product } from '@/database/types';
 
 // ============================================
 // BRAND COLORS — change these to update theme
@@ -23,28 +22,6 @@ const colors = {
   successBorder: '#BBF7D0',
 };
 
-const StarRating = ({ rating, count }: { rating: number; count: number }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-      {[1, 2, 3, 4, 5].map((s) => (
-        <svg
-          key={s}
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill={s <= Math.round(rating) ? colors.badgeBest : 'none'}
-          stroke={colors.badgeBest}
-          strokeWidth="2"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-    <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>{rating}</span>
-    <span style={{ fontSize: '13px', color: colors.textMuted }}>({count} reviews)</span>
-  </div>
-);
-
 const colorOptions = [
   { name: 'Matte Black', hex: '#1a1a1a' },
   { name: 'Pearl White', hex: '#F5F5F5' },
@@ -52,7 +29,7 @@ const colorOptions = [
 ];
 
 interface ProductDetailsProps {
-  product: CatalogProduct;
+  product: Product;
   className?: string;
 }
 
@@ -68,19 +45,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
 
   const inCart = isInCart(product.id);
 
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price!) / product.originalPrice) * 100)
-    : null;
-
-  const badgeColors: Record<string, string> = {
-    sale: colors.badgeSale,
-    new: colors.badgeNew,
-    'best-seller': colors.badgeBest,
-    hot: colors.badgeSale,
-  };
-
-  const inStock = product.stockStatus === 'In Stock' ? 'in Stock' : null;
-
   // ── Add to Cart — now wired to Zustand ──
   const handleAddToCart = () => {
     addProduct(product, quantity, colorOptions[selectedColor].name);
@@ -91,21 +55,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
     <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Badge + Brand */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {product.badge && (
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              textTransform: 'capitalize',
-              backgroundColor: badgeColors[product.badge],
-              color: colors.white,
-              padding: '3px 10px',
-              borderRadius: '4px',
-            }}
-          >
-            {product.badge.replace(/-/g, ' ')}
-          </span>
-        )}
         <span
           style={{
             fontSize: '11px',
@@ -133,69 +82,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
       </h1>
 
       {/* Rating */}
-      <StarRating rating={product.rating} count={product.reviewCount} />
 
       {/* Price */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '30px', fontWeight: 900, color: colors.secondary }}>
-          {formatPrice(product.price!)}
+          {product.price}
         </span>
-        {product.originalPrice && (
-          <>
-            <span
-              style={{ fontSize: '16px', textDecoration: 'line-through', color: colors.textMuted }}
-            >
-              {formatPrice(product.originalPrice)}
-            </span>
-            {discount && (
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: colors.badgeSale,
-                  backgroundColor: '#FEF2F2',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                }}
-              >
-                Save {discount}%
-              </span>
-            )}
-          </>
-        )}
       </div>
 
       {/* Stock status */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          borderRadius: '6px',
-          width: 'fit-content',
-          backgroundColor: product.stockStatus === 'In Stock' ? colors.successBg : '#FEF2F2',
-          border: `1px solid ${product.stockStatus === 'In Stock' ? colors.successBorder : '#FECACA'}`,
-        }}
-      >
-        <span
-          style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            backgroundColor: inStock ? colors.primary : colors.badgeSale,
-          }}
-        />
-        <span
-          style={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: inStock ? '#15803D' : colors.badgeSale,
-          }}
-        >
-          {inStock ? 'In Stock — Ready to Ship' : 'Out of Stock'}
-        </span>
-      </div>
 
       {/* Description */}
       <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7, margin: 0 }}>
@@ -302,22 +197,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = ''
         {/* Add to Cart — wired to cartStore */}
         <button
           onClick={handleAddToCart}
-          disabled={!inStock}
           style={{
             flex: 1,
             minWidth: '180px',
             height: '44px',
             borderRadius: '8px',
             border: 'none',
-            backgroundColor: !inStock
-              ? colors.border
-              : inCart
-                ? colors.primaryHover
-                : colors.primary,
+            backgroundColor: inCart ? colors.primaryHover : colors.primary,
             color: colors.white,
             fontSize: '14px',
             fontWeight: 700,
-            cursor: inStock ? 'pointer' : 'not-allowed',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

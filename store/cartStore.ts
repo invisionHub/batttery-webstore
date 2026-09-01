@@ -1,7 +1,6 @@
+import { Product } from '@/database/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Product } from '../hooks/lib/mock-data';
-import { CatalogProduct } from '@/features/products/types/product.type';
 
 // ============================================
 // TYPES
@@ -29,7 +28,7 @@ interface CartState {
   items: CartItem[];
 
   // Actions
-  addProduct: (product: CatalogProduct, quantity?: number, color?: string) => void;
+  addProduct: (product: Product, quantity?: number, color?: string) => void;
   removeProduct: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -55,7 +54,8 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           const existing = state.items.find((item) => item.id === product.id);
 
-          if (existing) {
+          if (existing)
+          {
             return {
               items: state.items.map((item) =>
                 item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
@@ -67,14 +67,13 @@ export const useCartStore = create<CartState>()(
             id: product.id,
             slug: product.slug!,
             name: product.name!,
-            price: product.price!,
-            originalPrice: product.originalPrice,
+            price: Number(product.price!),
             image: '',
             quantity,
             color,
           };
 
-          return { items: [...state.items, newItem] };
+          return { items: [ ...state.items, newItem ] };
         });
       },
 
@@ -88,7 +87,8 @@ export const useCartStore = create<CartState>()(
       // ── UPDATE QUANTITY ──
       // Quantity of 0 or less removes the item from cart
       updateQuantity: (id, quantity) => {
-        if (quantity <= 0) {
+        if (quantity <= 0)
+        {
           get().removeProduct(id);
           return;
         }
@@ -108,7 +108,8 @@ export const useCartStore = create<CartState>()(
         const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
         const discount = items.reduce((sum, item) => {
-          if (item.originalPrice) {
+          if (item.originalPrice)
+          {
             return sum + (item.originalPrice - item.price) * item.quantity;
           }
           return sum;

@@ -8,6 +8,7 @@ import {
   checkoutSchema,
   type CheckoutFormData,
 } from '@/schemas/checkoutSchema';
+import type { CreateOrderInput } from '@/lib/zod/checkoutformSchema';
 
 import { useCheckOut } from '../hook/useCheckOut';
 import { deliveryConfig } from '../constants';
@@ -16,7 +17,18 @@ import { FormErrorFormat } from '../components/checkout/FormErrorFormat';
 import { CheckOutForm } from '../components/checkout/CheckOutForm';
 import { CheckOutLayout } from '../components/checkout/CheckOutLayout';
 
-export default function CheckoutView() {
+interface CheckoutViewProps {
+  createOrderAction: (input: CreateOrderInput) => Promise<{
+    ok: boolean;
+    orderId?: string;
+    paymentReference?: string;
+    message?: string;
+    payment?: { status?: string; paymentUrl?: string };
+    status?: string;
+  }>;
+}
+
+export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
   const { isLoading, items, router, subtotal, clearCart, setIsLoading } = useCheckOut();
   const { steps, delivery } = deliveryConfig;
 
@@ -44,48 +56,48 @@ export default function CheckoutView() {
     methods.clearErrors('root');
 
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...values,
-          items,
-        }),
+      const result = await createOrderAction({
+        ...values,
+        items: items.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          color: item.color,
+        })),
       });
 
-      const result = (await response.json()) as {
-        ok: boolean;
-        message: string;
-        orderId?: string;
-        payment?: { paymentUrl?: string; status?: string };
-        paymentReference?: string;
-      };
-
-      if (!response.ok || !result.ok) {
+      if (!result.ok) {
         methods.setError('root', {
           type: 'server',
           message: result.message || 'Unable to create your order right now.',
         });
         return;
       }
-      clearCart();
 
       if (result.payment?.paymentUrl) {
         window.location.assign(result.payment.paymentUrl);
         return;
       }
 
+      if (result.status === 'pending' || result.payment?.status === 'pending') {
+        const pendingUrl = new URL('/checkOut/success', window.location.origin);
+        pendingUrl.searchParams.set('reference', result.paymentReference ?? '');
+
+        if (result.orderId) {
+          pendingUrl.searchParams.set('orderId', result.orderId);
+        }
+
+        pendingUrl.searchParams.set('status', 'pending');
+        router.push(`${pendingUrl.pathname}${pendingUrl.search}`);
+        return;
+      }
+
+      clearCart();
+
       const successUrl = new URL('/checkOut/success', window.location.origin);
       successUrl.searchParams.set('reference', result.paymentReference ?? '');
 
       if (result.orderId) {
         successUrl.searchParams.set('orderId', result.orderId);
-      }
-
-      if (result.payment?.status === 'pending') {
-        successUrl.searchParams.set('status', 'pending');
       }
 
       router.push(`${successUrl.pathname}${successUrl.search}`);

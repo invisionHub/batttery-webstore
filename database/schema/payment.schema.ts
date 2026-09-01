@@ -10,7 +10,7 @@ export const paymentStatusEnum = pgEnum('payment_status', [
 ]);
 
 export const paymentTable = pgTable('payments', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: uuid('id').defaultRandom().primaryKey().notNull(),
   orderId: uuid('order_id')
     .references(() => orderTable.id, { onDelete: 'cascade' })
     .notNull(),

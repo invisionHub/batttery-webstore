@@ -1,11 +1,12 @@
-import CheckoutView from '@/features/checkout/view/checkout-view'
+import { createOrderAction } from '@/features/checkout/actions/create-order-actions';
+import CheckoutView from '@/features/checkout/view/checkout-view';
 
-const CheckOutPage = () => {
+const CheckOutPage = async () => {
   return (
     <div>
-      <CheckoutView />
+      <CheckoutView createOrderAction={createOrderAction} />
     </div>
-  )
-}
+  );
+};
 
-export default CheckOutPage
+export default CheckOutPage;

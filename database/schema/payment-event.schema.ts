@@ -12,7 +12,7 @@ export const paymentEventTypeEnum = pgEnum('payment_event_type', [
 ]);
 
 export const paymentEventTable = pgTable('payment_events', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: uuid('id').defaultRandom().primaryKey().notNull(),
   paymentId: uuid('payment_id')
     .references(() => paymentTable.id, { onDelete: 'cascade' })
     .notNull(),

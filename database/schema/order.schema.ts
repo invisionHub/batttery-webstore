@@ -9,7 +9,7 @@ export const statusEnum = pgEnum('status-enum', [
 ]);
 
 export const orderTable = pgTable('order-table', {
-  id: uuid('id').primaryKey().notNull(),
+  id: uuid('id').defaultRandom().primaryKey().notNull(),
   reference: text('reference').unique().notNull(),
   customerInfo: json('custmer_info').notNull(),
   amount: integer('amount').notNull(),

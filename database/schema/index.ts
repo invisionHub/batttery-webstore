@@ -8,3 +8,4 @@ export {
   emailDeliveryTable,
   emailDeliveryStatusEnum,
 } from './notification.schema';
+export { productImageTable } from './product-image.schema';

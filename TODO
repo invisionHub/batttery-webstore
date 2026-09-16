@@ -1,0 +1,1649 @@
+# Product Image Enrichment System — TODO
+
+## Project Goal
+
+Build a production-ready product image enrichment pipeline that:
+
+```text
+Excel
+  ↓
+Product Import
+  ↓
+Find Products Without Images
+  ↓
+Search for Candidate Images
+  ↓
+Score / Validate Images
+  ↓
+Upload to Cloudinary
+  ↓
+Store Image Reference in PostgreSQL
+  ↓
+Connect Images to Products
+  ↓
+Display Images in Next.js Storefront
+```
+
+### MVP Milestone
+
+Do **not** start by processing the entire product catalog.
+
+First prove that the system can:
+
+> Given one product, reliably find, validate, upload, and associate one correct image.
+
+Then expand to 10 products → 50 products → full catalog.
+
+---
+
+# Phase 1 — Database
+
+## Task 1 — Create `product_images` Table
+
+- [x] Create `product_images` Drizzle schema
+- [x] Add `id`
+- [x] Add `product_id`
+- [x] Add foreign key from `product_images.product_id` → `products.id`
+- [x] Add `cloudinary_public_id`
+- [x] Add `secure_url` / `cloudinary_url`
+- [x] Add `source_url`
+- [x] Add `source`
+- [x] Add `confidence_score`
+- [x] Add `status`
+- [x] Add `alt_text`
+- [x] Add `sort_order`
+- [x] Add `is_primary`
+- [x] Add `created_at`
+- [x] Add `updated_at`
+
+### Suggested Image Statuses
+
+```text
+PENDING
+SEARCHING
+FOUND
+UPLOADING
+UPLOADED
+REVIEW_REQUIRED
+NOT_FOUND
+FAILED
+```
+
+---
+
+## Task 2 — Add Database Indexes
+
+- [x] Add index on `product_id`
+- [x] Add index on `cloudinary_public_id`
+- [x] Add index on `status`
+
+---
+
+## Task 3 — Add Uniqueness Constraints
+
+- [ ] Prevent duplicate Cloudinary assets for the same product
+- [ ] Ensure a product cannot have multiple primary images
+- [ ] Decide whether `cloudinary_public_id` should be globally unique
+- [ ] Add appropriate Drizzle/PostgreSQL constraints
+
+### Expected Rule
+
+```text
+One product
+    ↓
+One primary image
+    ↓
+Optional additional gallery images
+```
+
+---
+
+## Task 4 — Run Database Migration
+
+- [ ] Generate Drizzle migration
+- [ ] Review generated SQL
+- [ ] Run migration against development database
+- [ ] Verify `product_images` table exists
+- [ ] Verify foreign key
+- [ ] Verify indexes
+- [ ] Verify uniqueness constraints
+
+---
+
+# Phase 2 — Cloudinary
+
+## Task 5 — Create Cloudinary Configuration
+
+Create/configure Cloudinary account.
+
+Add environment variables:
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+- [x] Add variables to local `.env`
+- [] Add variables to production environment
+- [x] Make sure `.env` is in `.gitignore`
+- [x] Never expose `CLOUDINARY_API_SECRET` to the client
+
+---
+
+## Task 6 — Create Cloudinary Service
+
+Create:
+
+```text
+CloudinaryService
+```
+
+Suggested location:
+
+```text
+src/modules/product-images/cloudinary.service.ts
+```
+
+Implement:
+
+```typescript
+upload()
+delete()
+exists()
+```
+
+- [x] Implement `upload()`
+- [x] Implement `delete()`
+- [x] Implement `exists()`
+- [ ] Handle Cloudinary errors
+- [x] Return typed results
+- [x] Keep Cloudinary implementation isolated from business logic
+
+---
+
+## Task 7 — Define Cloudinary Folder Convention
+
+Use SKU-based folders:
+
+```text
+products/{SKU}/
+```
+
+Example:
+
+```text
+products/PHI-LED-12-CW/
+products/INGCO-AG900/
+products/SKU-001/
+```
+
+For primary image:
+
+```text
+products/{SKU}/primary
+```
+
+- [ ] Define folder naming convention
+- [ ] Define public ID convention
+- [ ] Use SKU as the stable product reference
+- [ ] Prevent duplicate uploads
+
+---
+
+## Task 8 — Test Cloudinary Upload
+
+Start with one local/test image.
+
+- [ ] Upload one image
+- [ ] Confirm Cloudinary response
+- [ ] Save returned `public_id`
+- [ ] Save returned `secure_url`
+- [ ] Test retrieving image
+- [ ] Test `exists()`
+- [ ] Test `delete()`
+
+---
+
+# Phase 3 — Product Image Repository
+
+## Task 9 — Create Image Repository
+
+Create:
+
+```text
+ProductImageRepository
+```
+
+Suggested location:
+
+```text
+src/modules/product-images/product-image.repository.ts
+```
+
+Implement methods such as:
+
+```typescript
+create()
+findByProductId()
+findPrimaryByProductId()
+findByCloudinaryPublicId()
+existsForProduct()
+updateStatus()
+delete()
+```
+
+- [ ] Create repository interface
+- [ ] Implement PostgreSQL/Drizzle repository
+- [ ] Add typed return values
+- [ ] Handle database errors
+- [ ] Prevent duplicate records
+
+---
+
+## Task 10 — Test Product/Image Relationship
+
+Test:
+
+```text
+Product
+   ↓
+product_images
+```
+
+- [ ] Create test product
+- [ ] Create image record
+- [ ] Retrieve product image
+- [ ] Retrieve primary image
+- [ ] Verify foreign key
+- [ ] Verify duplicate protection
+
+---
+
+# Phase 4 — Image Search
+
+## Task 11 — Select Image Search Provider
+
+Choose an image-search/data provider.
+
+Requirements:
+
+- [ ] Image search capability
+- [ ] Search by product name
+- [ ] Return image URL
+- [ ] Return source URL
+- [ ] Return candidate title/metadata where available
+- [ ] Reasonable API limits
+- [ ] Reliable API
+- [ ] Understand pricing
+- [ ] Understand rate limits
+- [ ] Review commercial usage considerations
+- [ ] Review provider terms
+- [ ] Review image licensing/usage considerations
+
+### Important
+
+Do **not** build the system around:
+
+```text
+Google Images → first result → download
+```
+
+The system must treat search results as **candidates**, not automatically correct images.
+
+---
+
+# Phase 5 — Image Search Abstraction
+
+## Task 12 — Create `ImageSearchService`
+
+Create interface:
+
+```typescript
+interface ImageSearchService {
+  search(query: string): Promise<ImageCandidate[]>;
+}
+```
+
+Define:
+
+```typescript
+type ImageCandidate = {
+  imageUrl: string;
+  sourceUrl: string;
+  title?: string;
+  width?: number;
+  height?: number;
+};
+```
+
+- [ ] Define `ImageCandidate`
+- [ ] Define `ImageSearchService`
+- [ ] Implement provider-specific service
+- [ ] Keep provider implementation separate
+- [ ] Make provider replaceable
+
+Expected architecture:
+
+```text
+ImageSearchService
+       │
+       ├── Provider A
+       │
+       ├── Provider B
+       │
+       └── Future Provider
+```
+
+---
+
+## Task 13 — Test Image Search
+
+Start with 10 real products.
+
+- [ ] Select 10 products
+- [ ] Generate search queries
+- [ ] Search for candidates
+- [ ] Inspect returned results
+- [ ] Check product accuracy
+- [ ] Check image quality
+- [ ] Check source quality
+- [ ] Record false matches
+- [ ] Adjust search strategy
+
+### Do NOT process the entire catalog yet.
+
+---
+
+# Phase 6 — Search Query Builder
+
+## Task 14 — Create Product Search Query Builder
+
+Create:
+
+```text
+buildImageSearchQuery(product)
+```
+
+Input:
+
+```text
+Product
+```
+
+Output:
+
+```text
+SearchQuery
+```
+
+Use available product information:
+
+```text
+Brand
+Product Name
+Model
+SKU
+Category
+Subcategory
+```
+
+Example:
+
+```text
+Brand:
+Philips
+
+Name:
+LED Bulb 12W Cool White
+
+Category:
+Lighting
+```
+
+Generated query:
+
+```text
+Philips LED Bulb 12W Cool White Lighting
+```
+
+- [ ] Implement query builder
+- [ ] Prioritize brand
+- [ ] Include product name
+- [ ] Include model when available
+- [ ] Include category
+- [ ] Avoid unnecessary words
+- [ ] Test queries against 10 products
+
+---
+
+# Phase 7 — Image Matching
+
+## Task 15 — Implement Text Matching
+
+Compare product information against candidate information.
+
+Product:
+
+```text
+product.brand
+product.name
+product.model
+product.category
+```
+
+Candidate:
+
+```text
+candidate.title
+candidate.source
+candidate.url
+```
+
+- [ ] Normalize text
+- [ ] Convert to lowercase
+- [ ] Remove unnecessary punctuation
+- [ ] Tokenize product names
+- [ ] Compare important terms
+- [ ] Compare brand
+- [ ] Compare model
+- [ ] Compare category
+- [ ] Compare product name
+
+---
+
+## Task 16 — Implement Confidence Scoring
+
+Create:
+
+```typescript
+calculateConfidence(product, candidate);
+```
+
+Suggested scoring model:
+
+```text
+Brand match          +30
+Product name match   +25
+Model match          +25
+Category match       +10
+Image quality         +5
+Trusted source        +5
+-----------------------------
+Maximum              100
+```
+
+- [ ] Implement scoring
+- [ ] Return score from `0–100`
+- [ ] Add unit tests
+- [ ] Test correct matches
+- [ ] Test incorrect matches
+- [ ] Test partial matches
+
+---
+
+## Task 17 — Implement Confidence Threshold
+
+Initial MVP rule:
+
+```text
+>= 90
+HIGH CONFIDENCE
+→ APPROVED
+```
+
+```text
+< 90
+→ REVIEW_REQUIRED
+```
+
+- [ ] Define threshold constant
+- [ ] Implement classification
+- [ ] Make threshold configurable
+- [ ] Log confidence score
+- [ ] Test threshold behavior
+
+---
+
+# Phase 8 — Image Validation
+
+## Task 18 — Validate Image URL
+
+Before uploading:
+
+- [ ] Check HTTP response
+- [ ] Check HTTP status
+- [ ] Check `Content-Type`
+- [ ] Confirm response is actually an image
+- [ ] Check file size
+- [ ] Check image dimensions
+- [ ] Check supported format
+- [ ] Handle redirects
+- [ ] Handle timeout
+- [ ] Handle inaccessible URLs
+
+---
+
+## Task 19 — Define Image Requirements
+
+Example:
+
+```text
+Minimum width: 500px
+Minimum height: 500px
+```
+
+Supported formats:
+
+```text
+JPEG
+PNG
+WEBP
+```
+
+- [ ] Define minimum dimensions
+- [ ] Define maximum file size
+- [ ] Define allowed formats
+- [ ] Define timeout
+- [ ] Define validation errors
+
+---
+
+## Task 20 — Reject Invalid Images
+
+Reject:
+
+```text
+HTML pretending to be an image
+Broken URL
+Tiny image
+Unsupported format
+Empty response
+Timeout
+Invalid content
+```
+
+- [ ] Implement validation service
+- [ ] Add unit tests
+- [ ] Log validation failures
+
+---
+
+# Phase 9 — Single Product Image Pipeline
+
+## Task 21 — Create `enrichProductImage()`
+
+Create:
+
+```typescript
+enrichProductImage(product);
+```
+
+Pipeline:
+
+```text
+Get Product
+     ↓
+Check Existing Image
+     ↓
+Build Search Query
+     ↓
+Search
+     ↓
+Get Candidates
+     ↓
+Score Candidates
+     ↓
+Select Best Candidate
+     ↓
+Validate Image
+     ↓
+Upload to Cloudinary
+     ↓
+Save product_images
+     ↓
+Update Status
+```
+
+---
+
+## Task 22 — Implement Existing Image Check
+
+Before searching:
+
+```text
+Does product already have a primary image?
+```
+
+If yes:
+
+```text
+SKIP
+```
+
+If no:
+
+```text
+CONTINUE
+```
+
+- [ ] Implement existing-image check
+- [ ] Prevent unnecessary API calls
+- [ ] Prevent duplicate Cloudinary uploads
+- [ ] Test idempotency
+
+---
+
+## Task 23 — Implement Candidate Selection
+
+Given:
+
+```text
+Candidate 1 → 95
+Candidate 2 → 83
+Candidate 3 → 71
+Candidate 4 → 42
+```
+
+Select:
+
+```text
+Candidate 1
+```
+
+- [ ] Sort candidates by confidence
+- [ ] Select highest-scoring candidate
+- [ ] Reject if score is below threshold
+- [ ] Mark low-confidence result as `REVIEW_REQUIRED`
+
+---
+
+## Task 24 — Implement Cloudinary Upload
+
+Pipeline:
+
+```text
+Approved Candidate
+       ↓
+Cloudinary
+       ↓
+public_id
+secure_url
+       ↓
+product_images
+```
+
+- [ ] Upload image
+- [ ] Store Cloudinary public ID
+- [ ] Store secure URL
+- [ ] Store source URL
+- [ ] Store confidence score
+- [ ] Store product ID
+- [ ] Mark image `UPLOADED`
+
+---
+
+## Task 25 — Implement Transaction/Consistency Handling
+
+Make sure the system does not leave inconsistent records.
+
+Example failure:
+
+```text
+Cloudinary upload succeeds
+        ↓
+Database insert fails
+```
+
+The system must handle this scenario.
+
+- [ ] Identify partial failure scenarios
+- [ ] Implement appropriate cleanup/retry
+- [ ] Prevent orphaned Cloudinary assets
+- [ ] Prevent duplicate database records
+- [ ] Log failures
+
+---
+
+# Phase 10 — Batch Processing
+
+## Task 26 — Create Batch Script
+
+Create:
+
+```text
+scripts/enrich-product-images.ts
+```
+
+Add package script:
+
+```json
+{
+  "scripts": {
+    "enrich:images": "tsx scripts/enrich-product-images.ts"
+  }
+}
+```
+
+Run:
+
+```bash
+pnpm enrich:images
+```
+
+---
+
+## Task 27 — Process Products in Batches
+
+Do NOT process:
+
+```text
+1000 products simultaneously
+```
+
+Use batches:
+
+```text
+Batch 1 → 20
+Batch 2 → 20
+Batch 3 → 20
+...
+```
+
+- [ ] Define batch size
+- [ ] Process sequentially or with controlled concurrency
+- [ ] Respect API rate limits
+- [ ] Prevent memory issues
+- [ ] Log batch progress
+
+---
+
+## Task 28 — Add Progress Reporting
+
+Expected output:
+
+```text
+========================================
+PRODUCT IMAGE ENRICHMENT
+========================================
+
+Products found:       1,000
+
+Already processed:      120
+Processing:             880
+
+Uploaded:               731
+Review required:         96
+Not found:               31
+Failed:                  22
+
+========================================
+COMPLETE
+========================================
+```
+
+- [ ] Track total
+- [ ] Track skipped
+- [ ] Track uploaded
+- [ ] Track review required
+- [ ] Track not found
+- [ ] Track failed
+- [ ] Print final summary
+
+---
+
+# Phase 11 — Error Handling
+
+## Task 29 — Handle Search API Errors
+
+Handle:
+
+- [ ] Search API timeout
+- [ ] Search API unavailable
+- [ ] Search API rate limit
+- [ ] Invalid API key
+- [ ] API response validation failure
+- [ ] Empty search results
+
+---
+
+## Task 30 — Handle Image Errors
+
+Handle:
+
+- [ ] Invalid image
+- [ ] Broken image URL
+- [ ] Unsupported format
+- [ ] Image too small
+- [ ] Image download timeout
+- [ ] Image unavailable
+
+---
+
+## Task 31 — Handle Cloudinary Errors
+
+Handle:
+
+- [ ] Upload failure
+- [ ] Authentication failure
+- [ ] Timeout
+- [ ] Invalid response
+- [ ] Duplicate asset
+- [ ] Cloudinary unavailable
+
+---
+
+## Task 32 — Handle Database Errors
+
+Handle:
+
+- [ ] Database connection failure
+- [ ] Insert failure
+- [ ] Constraint violation
+- [ ] Transaction failure
+- [ ] Duplicate record
+- [ ] Missing product
+
+---
+
+## Task 33 — Add Structured Error Logging
+
+Example:
+
+```text
+[FAILED]
+
+SKU: INGCO-AG900
+
+Stage:
+IMAGE_SEARCH
+
+Reason:
+Image search timeout
+
+Retry:
+YES
+```
+
+- [ ] Add error type
+- [ ] Add SKU
+- [ ] Add product ID
+- [ ] Add processing stage
+- [ ] Add error message
+- [ ] Add retry status
+
+---
+
+# Phase 12 — Retry System
+
+## Task 34 — Implement Retry Logic
+
+Retry transient failures:
+
+```text
+Network failure
+API timeout
+Rate limit
+Cloudinary temporary failure
+```
+
+Do not endlessly retry permanent failures.
+
+- [ ] Define retryable errors
+- [ ] Define non-retryable errors
+- [ ] Define maximum attempts
+- [ ] Add delay/backoff
+- [ ] Track retry count
+
+---
+
+## Task 35 — Retry Failed Products
+
+Allow:
+
+```text
+FAILED
+  ↓
+Retry
+  ↓
+SEARCHING
+  ↓
+FOUND
+  ↓
+UPLOADED
+```
+
+- [ ] Query failed products
+- [ ] Retry failed products
+- [ ] Update status
+- [ ] Record successful retry
+- [ ] Record final failure
+
+---
+
+# Phase 13 — Manual Review
+
+## Task 36 — Identify Review Candidates
+
+Products should enter:
+
+```text
+REVIEW_REQUIRED
+```
+
+when:
+
+```text
+confidence < threshold
+```
+
+or:
+
+```text
+no sufficiently reliable candidate
+```
+
+- [ ] Store candidate information
+- [ ] Store confidence score
+- [ ] Store source URL
+- [ ] Store image URL
+- [ ] Store reason for review
+
+---
+
+## Task 37 — Generate `image-review.csv`
+
+Generate:
+
+```text
+image-review.csv
+```
+
+Columns:
+
+```text
+SKU
+Product
+Candidate Image
+Source URL
+Confidence Score
+Status
+```
+
+- [ ] Generate CSV
+- [ ] Include all review candidates
+- [ ] Include failed/not-found products where useful
+- [ ] Make CSV easy to inspect
+
+---
+
+## Task 38 — Manual Approval Workflow
+
+For MVP, manual review can happen outside the application.
+
+Process:
+
+```text
+REVIEW_REQUIRED
+       ↓
+image-review.csv
+       ↓
+Developer/Store Owner
+       ↓
+Verify Image
+       ↓
+Approve / Reject
+       ↓
+Upload / Replace Image
+```
+
+Future:
+
+```text
+Admin Dashboard
+       ↓
+Image Review Interface
+```
+
+---
+
+# Phase 14 — Production Safety
+
+## Task 39 — Database Backup
+
+Before full catalog processing:
+
+- [ ] Backup database
+- [ ] Verify backup
+- [ ] Confirm restore procedure
+
+---
+
+## Task 40 — Small Dataset Test
+
+Test:
+
+```text
+10 products
+```
+
+- [ ] Import products
+- [ ] Enrich images
+- [ ] Verify Cloudinary
+- [ ] Verify database
+- [ ] Verify storefront
+
+---
+
+## Task 41 — Medium Dataset Test
+
+Test:
+
+```text
+50 products
+```
+
+- [ ] Process 50 products
+- [ ] Check processing time
+- [ ] Check API limits
+- [ ] Check Cloudinary usage
+- [ ] Check database records
+- [ ] Check incorrect matches
+- [ ] Check failure rate
+
+---
+
+## Task 42 — Idempotency Test
+
+Run:
+
+```bash
+pnpm enrich:images
+```
+
+twice.
+
+Expected:
+
+```text
+First run:
+Images uploaded
+
+Second run:
+Existing images skipped
+```
+
+- [ ] Verify no duplicate DB records
+- [ ] Verify no duplicate Cloudinary assets
+- [ ] Verify existing images are not reprocessed
+
+---
+
+## Task 43 — Failure Test
+
+Simulate:
+
+- [ ] Search API failure
+- [ ] Cloudinary failure
+- [ ] Database failure
+- [ ] Invalid image
+- [ ] Network timeout
+
+Verify:
+
+```text
+FAILED
+```
+
+is correctly recorded.
+
+---
+
+## Task 44 — Retry Test
+
+After failure:
+
+```bash
+pnpm enrich:images
+```
+
+or dedicated retry command.
+
+Verify:
+
+```text
+FAILED
+ ↓
+RETRY
+ ↓
+UPLOADED
+```
+
+---
+
+## Task 45 — Rate Limit Test
+
+- [ ] Determine provider rate limit
+- [ ] Determine Cloudinary limits
+- [ ] Configure concurrency
+- [ ] Add delay/backoff where required
+- [ ] Test large batch
+
+---
+
+# Phase 15 — Image Quality
+
+## Task 46 — Review Image Quality
+
+Inspect:
+
+- [ ] Correct product
+- [ ] Correct model
+- [ ] Correct brand
+- [ ] Good resolution
+- [ ] Product clearly visible
+- [ ] No irrelevant objects
+- [ ] No inappropriate content
+- [ ] No obvious watermark issues
+- [ ] Suitable for ecommerce
+
+---
+
+# Phase 16 — Legal / Source Considerations
+
+## Task 47 — Review Image Sources
+
+For every provider/source:
+
+- [ ] Review terms of use
+- [ ] Review image licensing
+- [ ] Review commercial-use restrictions
+- [ ] Prefer manufacturer/supplier images
+- [ ] Prefer authorized product images
+- [ ] Store original `source_url`
+- [ ] Document image sourcing policy
+
+### Important
+
+Do not assume:
+
+```text
+"Found online"
+```
+
+means:
+
+```text
+"Free to use commercially"
+```
+
+---
+
+# Phase 17 — Product/Image API
+
+## Task 48 — Update Product Repository
+
+Product retrieval should support images.
+
+Example:
+
+```typescript
+product.images;
+```
+
+- [ ] Add image relation
+- [ ] Retrieve primary image
+- [ ] Retrieve gallery images
+- [ ] Sort by `sort_order`
+
+---
+
+## Task 49 — Define Product Response
+
+Example:
+
+```json
+{
+  "id": "123",
+  "sku": "PHI-LED-12-CW",
+  "name": "Philips LED Bulb 12W Cool White",
+  "price": 5000,
+  "images": [
+    {
+      "secureUrl": "https://res.cloudinary.com/...",
+      "isPrimary": true,
+      "sortOrder": 0
+    }
+  ]
+}
+```
+
+---
+
+# Phase 18 — Next.js Storefront
+
+## Task 50 — Display Primary Image
+
+- [ ] Retrieve product images
+- [ ] Identify primary image
+- [ ] Display Cloudinary URL
+- [ ] Add fallback image
+- [ ] Add alt text
+
+---
+
+## Task 51 — Product Gallery
+
+If multiple images are supported:
+
+```text
+Primary
+   ↓
+Gallery
+   ├── Image 1
+   ├── Image 2
+   └── Image 3
+```
+
+- [ ] Display primary image
+- [ ] Display gallery images
+- [ ] Support image switching
+- [ ] Optimize image loading
+
+---
+
+# Phase 19 — Final Integration Test
+
+## Task 52 — Full Pipeline Test
+
+Run:
+
+```bash
+pnpm import:products
+```
+
+Then:
+
+```bash
+pnpm enrich:images
+```
+
+Verify:
+
+```text
+Excel
+ ↓
+Products
+ ↓
+Products without images
+ ↓
+Image Search
+ ↓
+Candidate Scoring
+ ↓
+Image Validation
+ ↓
+Cloudinary
+ ↓
+product_images
+ ↓
+Next.js
+```
+
+---
+
+# MVP Acceptance Criteria
+
+## AC-01 — Image Search
+
+Given a product without an image:
+
+```text
+Product
+ ↓
+Search
+ ↓
+Candidate Images
+```
+
+must work.
+
+- [ ] Candidate images returned
+- [ ] Candidate URLs available
+- [ ] Source URLs available
+
+---
+
+## AC-02 — Confidence Score
+
+The system must calculate:
+
+```text
+0–100
+```
+
+for each candidate.
+
+- [ ] Score calculated
+- [ ] Score persisted where appropriate
+- [ ] Score logged
+
+---
+
+## AC-03 — High Confidence Upload
+
+Given:
+
+```text
+confidence >= 90
+```
+
+the image can be uploaded to Cloudinary.
+
+- [ ] Image validated
+- [ ] Image uploaded
+- [ ] Cloudinary public ID returned
+- [ ] Cloudinary URL returned
+
+---
+
+## AC-04 — Database Persistence
+
+After upload:
+
+```text
+product_images
+```
+
+must contain:
+
+```text
+product_id
+cloudinary_public_id
+secure_url
+source_url
+confidence_score
+status
+```
+
+---
+
+## AC-05 — Correct Product Association
+
+Image must be associated through:
+
+```text
+product_images.product_id
+        ↓
+products.id
+```
+
+Never rely on the product name as the database relationship.
+
+---
+
+## AC-06 — Idempotency
+
+Running:
+
+```bash
+pnpm enrich:images
+```
+
+multiple times must not create duplicate images.
+
+---
+
+## AC-07 — Manual Review
+
+Low-confidence results must be:
+
+```text
+REVIEW_REQUIRED
+```
+
+and included in:
+
+```text
+image-review.csv
+```
+
+---
+
+## AC-08 — Failure Tracking
+
+Failed processing must be recorded as:
+
+```text
+FAILED
+```
+
+with useful error information.
+
+---
+
+## AC-09 — Retry
+
+Transient failures must be retryable.
+
+---
+
+## AC-10 — Storefront
+
+The storefront must be able to retrieve:
+
+```typescript
+product.images;
+```
+
+and display the primary image.
+
+---
+
+# Definition of Done
+
+The feature is complete when:
+
+```bash
+pnpm import:products
+```
+
+followed by:
+
+```bash
+pnpm enrich:images
+```
+
+successfully processes the product catalog.
+
+Expected output:
+
+```text
+========================================
+PRODUCT IMAGE ENRICHMENT
+========================================
+
+Products found:       1,000
+
+Already processed:      120
+Processing:             880
+
+Uploaded:               731
+Review required:         96
+Not found:               31
+Failed:                  22
+
+========================================
+COMPLETE
+========================================
+```
+
+PostgreSQL:
+
+```text
+products
+    │
+    ├── product_images
+    ├── product_images
+    └── product_images
+```
+
+Cloudinary:
+
+```text
+products/
+├── SKU-001/
+├── SKU-002/
+├── SKU-003/
+└── ...
+```
+
+Next.js:
+
+```text
+Product
+   ↓
+product.images
+   ↓
+Primary Image
+   ↓
+Cloudinary
+```
+
+---
+
+# Final Development Order
+
+Follow this order strictly:
+
+```text
+1.  Database schema
+        ↓
+2.  Database migration
+        ↓
+3.  Cloudinary configuration
+        ↓
+4.  CloudinaryService
+        ↓
+5.  ProductImageRepository
+        ↓
+6.  ImageSearchService interface
+        ↓
+7.  Select image-search provider
+        ↓
+8.  Image search implementation
+        ↓
+9.  Image query builder
+        ↓
+10. Text matching
+        ↓
+11. Confidence scoring
+        ↓
+12. Confidence threshold
+        ↓
+13. Image validation
+        ↓
+14. Single-product enrichment
+        ↓
+15. Cloudinary + database integration
+        ↓
+16. Idempotency
+        ↓
+17. Batch processing
+        ↓
+18. Error handling
+        ↓
+19. Retry system
+        ↓
+20. Manual review CSV
+        ↓
+21. 10-product test
+        ↓
+22. 50-product test
+        ↓
+23. Full catalog
+        ↓
+24. Product API
+        ↓
+25. Next.js storefront
+        ↓
+26. Production verification
+```
+
+---
+
+# Architecture Principle
+
+The most important architectural decision:
+
+```typescript
+interface ImageSearchService {
+  search(query: string): Promise<ImageCandidate[]>;
+}
+```
+
+The ecommerce application should depend on the **interface**, not directly on a specific image-search provider.
+
+Therefore:
+
+```text
+Application
+     ↓
+ImageSearchService
+     ↓
+Provider
+```
+
+instead of:
+
+```text
+Application
+     ↓
+Google/Bing/Provider-specific code
+```
+
+This allows the image provider to be replaced without rewriting the image enrichment system.
+
+---
+
+# MVP Boundary
+
+### Build now
+
+- [ ] PostgreSQL `product_images`
+- [ ] Drizzle schema
+- [ ] Cloudinary integration
+- [ ] Image search abstraction
+- [ ] One search provider
+- [ ] Query builder
+- [ ] Candidate scoring
+- [ ] Image validation
+- [ ] Single-product enrichment
+- [ ] Batch processing
+- [ ] Error handling
+- [ ] Retry
+- [ ] Manual review CSV
+- [ ] Next.js product image display
+
+### Build later
+
+- [ ] Admin dashboard
+- [ ] Image review UI
+- [ ] Drag-and-drop image management
+- [ ] Multiple image management
+- [ ] Product image replacement UI
+- [ ] AI image matching
+- [ ] Automatic image background removal
+- [ ] Advanced image moderation
+- [ ] Supplier synchronization
+- [ ] Scheduled catalog synchronization
+
+---
+
+# Success Metric
+
+The system should ultimately answer:
+
+> **"Given a product SKU, can we reliably determine its correct image, store that image permanently in Cloudinary, and retrieve it through the product?"**
+
+If the answer is **yes**, the image enrichment system is working.

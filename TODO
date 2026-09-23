@@ -156,7 +156,7 @@ exists()
 - [x] Implement `upload()`
 - [x] Implement `delete()`
 - [x] Implement `exists()`
-- [ ] Handle Cloudinary errors
+- [x] Handle Cloudinary errors
 - [x] Return typed results
 - [x] Keep Cloudinary implementation isolated from business logic
 
@@ -184,10 +184,10 @@ For primary image:
 products/{SKU}/primary
 ```
 
-- [ ] Define folder naming convention
-- [ ] Define public ID convention
-- [ ] Use SKU as the stable product reference
-- [ ] Prevent duplicate uploads
+- [x] Define folder naming convention
+- [x] Define public ID convention
+- [x] Use SKU as the stable product reference
+- [x] Prevent duplicate uploads
 
 ---
 

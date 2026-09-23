@@ -9,8 +9,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "test": "echo frontend-tests",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:integration:run": "vitest run --config vitest.integration.config.ts",
     "test-parser": "tsx --require tsconfig-paths/register scripts/test-parser.ts",
+    "test-cloudinary-upload": "tsx --require tsconfig-paths/register scripts/test-cloudinary.ts",
     "test-transformer": "tsx --require tsconfig-paths/register scripts/test-transformer.ts",
     "test-import-pipeline": "tsx --require tsconfig-paths/register scripts/test-import-pipeline.ts",
     "test-importer": "tsx --require tsconfig-paths/register scripts/test-importer.ts",
@@ -49,7 +52,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -63,6 +66,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.22.4",
     "typescript": "^5",
+    "vitest": "^5.0.1",
     "zod": "^4.4.3"
   }
 }

@@ -12,7 +12,7 @@ export class CloudinaryService implements ICloudinaryInterface {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: input.folder,
-            publicId: input.publicId,
+            public_id: input.publicId,
           },
           (error, result) => {
             if (error) {

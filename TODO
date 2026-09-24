@@ -195,13 +195,13 @@ products/{SKU}/primary
 
 Start with one local/test image.
 
-- [ ] Upload one image
-- [ ] Confirm Cloudinary response
-- [ ] Save returned `public_id`
-- [ ] Save returned `secure_url`
-- [ ] Test retrieving image
-- [ ] Test `exists()`
-- [ ] Test `delete()`
+- [x] Upload one image
+- [x] Confirm Cloudinary response
+- [x] Save returned `public_id`
+- [x] Save returned `secure_url`
+- [x] Test retrieving image
+- [x] Test `exists()`
+- [x] Test `delete()`
 
 ---
 

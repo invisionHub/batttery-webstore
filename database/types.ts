@@ -1,8 +1,12 @@
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { orderTable } from './schema/order.schema';
-import { paymentEventTable } from './schema/payment-event.schema';
-import { paymentTable } from './schema/payment.schema';
-import { productTable } from './schema/product.schema';
+
+import {
+  productImageTable,
+  productTable,
+  orderTable,
+  paymentTable,
+  paymentEventTable,
+} from './schema/index';
 
 export type Product = InferSelectModel<typeof productTable>;
 export type NewProduct = InferInsertModel<typeof productTable>;
@@ -15,3 +19,6 @@ export type NewPayment = InferInsertModel<typeof paymentTable>;
 
 export type PaymentEvent = InferSelectModel<typeof paymentEventTable>;
 export type NewPaymentEvent = InferInsertModel<typeof paymentEventTable>;
+
+export type ProductImage = InferSelectModel<typeof productImageTable>;
+export type NewProductImage = InferInsertModel<typeof productImageTable>;

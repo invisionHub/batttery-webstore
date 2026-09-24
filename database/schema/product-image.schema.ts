@@ -29,7 +29,7 @@ export const productImageTable = pgTable(
   'products_image_table',
   {
     id: uuid('id').defaultRandom().primaryKey().notNull(),
-    productId: text('product_id')
+    productId: uuid('product_id')
       .references(() => productTable.id)
       .notNull(),
     cloudinaryPublicId: text('cloudinary_public_id').notNull(),

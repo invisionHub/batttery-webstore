@@ -1,5 +1,5 @@
 {
-  "id": "7a12b555-0822-40b1-b8cf-0c5866ad8f59",
+  "id": "a492b3d4-bcab-4111-b94d-29f1cbbeb625",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -454,7 +454,7 @@
         },
         "product_id": {
           "name": "product_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -722,6 +722,20 @@
         "SENT",
         "FAILED",
         "CANCELLED"
+      ]
+    },
+    "public.image_status": {
+      "name": "image_status",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "SEARCHING",
+        "FOUND",
+        "UPLOADING",
+        "UPLOADED",
+        "REVIEW_REQUIRED",
+        "NOT_FOUND",
+        "FAILED"
       ]
     },
     "public.notification_job_status": {

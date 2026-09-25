@@ -62,12 +62,27 @@ export const useCartStore = create<CartState>()(
             };
           }
 
+          // Extract primary product image
+          let image = '';
+          if (product.images) {
+            if (Array.isArray(product.images)) {
+              image = (product.images as string[])[0] || '';
+            } else if (typeof product.images === 'string') {
+              try {
+                const parsed = JSON.parse(product.images);
+                image = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : product.images;
+              } catch {
+                image = product.images;
+              }
+            }
+          }
+
           const newItem: CartItem = {
             id: product.id,
-            slug: product.slug!,
-            name: product.name!,
-            price: Number(product.price!),
-            image: '',
+            slug: product.slug || product.id,
+            name: product.name || 'Product',
+            price: Number(product.price || 0),
+            image,
             quantity,
             color,
           };

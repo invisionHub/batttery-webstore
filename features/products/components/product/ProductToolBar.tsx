@@ -1,3 +1,4 @@
+import React from 'react';
 import { ProductCardSkeleton } from '@/components/ui';
 
 const colors = {
@@ -84,7 +85,8 @@ interface IProductSkeletonProps {
 }
 
 export const ProductSkeleton = ({ loading }: IProductSkeletonProps) => {
-  loading && (
+  if (!loading) return null;
+  return (
     <div
       style={{
         display: 'grid',
@@ -99,7 +101,13 @@ export const ProductSkeleton = ({ loading }: IProductSkeletonProps) => {
   );
 };
 
-export const ProductNotFound = ({ error }: { error: unknown }) => {
+export const ProductNotFound = ({
+  error,
+  onReset,
+}: {
+  error?: unknown;
+  onReset?: () => void;
+}) => {
   return (
     <div
       style={{
@@ -111,21 +119,58 @@ export const ProductNotFound = ({ error }: { error: unknown }) => {
         backgroundColor: colors.white,
         borderRadius: '12px',
         border: `1px dashed ${colors.border}`,
+        width: '100%',
+        margin: '20px 0',
       }}
     >
+      <div
+        style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          backgroundColor: '#F3F4F6',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+        }}
+      >
+        <svg width="28" height="28" fill="none" stroke={colors.textMuted} strokeWidth="1.8" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <line x1="8" y1="11" x2="14" y2="11" />
+        </svg>
+      </div>
       <h3
         style={{
-          fontSize: '16px',
-          fontWeight: 700,
+          fontSize: '18px',
+          fontWeight: 800,
           color: colors.secondary,
           margin: '0 0 8px 0',
         }}
       >
-        {error as string}
+        {(error as string) || 'No products found'}
       </h3>
-      <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
-        Try adjusting your filters or search term
+      <p style={{ fontSize: '14px', color: colors.textMuted, margin: '0 0 20px 0', maxWidth: '360px' }}>
+        We couldn&apos;t find any electrical supplies matching your active search or filters.
       </p>
+      {onReset && (
+        <button
+          onClick={onReset}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: colors.primary,
+            color: colors.white,
+            fontSize: '13px',
+            fontWeight: 700,
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          Clear Filters & Show All
+        </button>
+      )}
     </div>
   );
 };

@@ -1,7 +1,8 @@
 export interface CloudinaryUploadInput {
-  file: Buffer;
+  file: Buffer | string;
   folder?: string;
   publicId?: string;
+  overwrite?: boolean;
 }
 
 export interface CloudinaryUploadResult {

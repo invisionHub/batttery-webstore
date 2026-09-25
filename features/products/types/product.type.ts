@@ -1,3 +1,11 @@
+export interface ProductImageResponse {
+  id?: string;
+  secureUrl: string;
+  isPrimary: boolean;
+  sortOrder: number;
+  altText?: string;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -13,6 +21,7 @@ export interface Product {
   shortDescription: string;
   stockStatus: 'In Stock' | 'Out of Stock';
   images: string[];
+  imageGallery?: ProductImageResponse[];
 }
 
 export type CatalogProduct = Partial<Product> & {
@@ -21,4 +30,5 @@ export type CatalogProduct = Partial<Product> & {
   rating: number;
   reviewCount: number;
   badge?: 'best-seller';
+  imageGallery?: ProductImageResponse[];
 };

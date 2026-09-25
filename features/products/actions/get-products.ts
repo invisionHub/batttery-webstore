@@ -1,10 +1,13 @@
 'use server';
 
-import { productRepository } from '@/database/repository/products/product.repository';
+import {
+  productRepository,
+  ProductQueryOptions,
+} from '@/database/repository/products/product.repository';
 
-export async function fetchProducts() {
+export async function fetchProducts(options?: ProductQueryOptions) {
   try {
-    const products = await productRepository.getAllProducts();
+    const products = await productRepository.getAllProducts(options);
 
     return {
       product: products,
@@ -21,7 +24,8 @@ export async function fetchProducts() {
 
 export async function fetchProductById(id: string) {
   try {
-    const product = await productRepository.findById(id);
+    const products = await productRepository.findById(id);
+    const product = products[0];
 
     if (!product) {
       return {

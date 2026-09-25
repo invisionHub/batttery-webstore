@@ -19,7 +19,7 @@ import Frame2147235258 from './Frame 2147235258.png';
 import Frame2147235259 from './Frame 2147235259.png';
 import Frame2147235260 from './Frame 2147235260.png';
 import Frame2147235565 from './Frame 2147235565.png';
-import HeartImage from './Heart.png';
+import HeartImage from '../other/Heart.png';
 
 /**
  * Image object containing all available images organized by name

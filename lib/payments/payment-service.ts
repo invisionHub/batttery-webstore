@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/database/client';
@@ -102,7 +103,7 @@ export class PaymentService {
       mappedStatus === 'PAID' ? 'paid' : mappedStatus === 'FAILED' ? 'failed' : 'pending';
 
     if (mappedStatus !== 'PENDING') {
-      await db.transaction(async (tx) => {
+      await db.transaction(async (tx: any) => {
         await tx
           .update(paymentTable)
           .set({ status: mappedStatus, updatedAt: new Date() })

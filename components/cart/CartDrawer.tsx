@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
 import { formatPrice } from '@/utils/utils';
@@ -26,6 +27,7 @@ const colors = {
 // ─────────────────────────────────────────
 const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>['items'][0] }) => {
   const { removeProduct, updateQuantity } = useCartStore();
+  const [imgErr, setImgErr] = useState(false);
 
   return (
     <div
@@ -36,38 +38,52 @@ const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>[
         borderBottom: `1px solid ${colors.border}`,
       }}
     >
-      {/* Image placeholder */}
+      {/* Product Image */}
       <div
         style={{
           width: '64px',
           height: '64px',
           flexShrink: 0,
           borderRadius: '8px',
-          backgroundColor: colors.bgLight,
+          backgroundColor: colors.white,
           border: `1px solid ${colors.border}`,
+          position: 'relative',
+          overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <rect
-            x="3"
-            y="3"
-            width="18"
-            height="18"
-            rx="2"
-            stroke={colors.border}
-            strokeWidth="1.5"
+        {item.image && !imgErr ? (
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            sizes="64px"
+            className="object-contain p-1"
+            referrerPolicy="no-referrer"
+            onError={() => setImgErr(true)}
           />
-          <circle cx="8.5" cy="8.5" r="1.5" stroke={colors.textMuted} strokeWidth="1.5" />
-          <path
-            d="M21 15l-5-5L5 21"
-            stroke={colors.textMuted}
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
+        ) : (
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="2"
+              stroke={colors.border}
+              strokeWidth="1.5"
+            />
+            <circle cx="8.5" cy="8.5" r="1.5" stroke={colors.textMuted} strokeWidth="1.5" />
+            <path
+              d="M21 15l-5-5L5 21"
+              stroke={colors.textMuted}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
       </div>
 
       {/* Info */}

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -17,12 +17,14 @@
     "test-transformer": "tsx --require tsconfig-paths/register scripts/test-transformer.ts",
     "test-import-pipeline": "tsx --require tsconfig-paths/register scripts/test-import-pipeline.ts",
     "test-importer": "tsx --require tsconfig-paths/register scripts/test-importer.ts",
+    "test:product-images": "tsx --require tsconfig-paths/register scripts/test-product-image-repository.ts",
+    "test:image-search": "tsx --require tsconfig-paths/register scripts/test-image-search-catalog.ts",
+    "enrich:images": "tsx --require tsconfig-paths/register scripts/enrich-product-images.ts",
     "seed:products": "tsx --require dotenv/config --require tsconfig-paths/register scripts/seed-products.ts",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "db:sync": "drizzle-kit push",
     "format": "prettier . --write",
-    "format:check": "prettier . --check .",
-    "prepare": "husky install"
+    "format:check": "prettier . --check ."
   },
   "lint-staged": {
     "*.{ts,tsx}": [

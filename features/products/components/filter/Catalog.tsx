@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 const colors = {
   primary: '#CC0000',
@@ -7,37 +7,56 @@ const colors = {
   border: '#E5E7EB',
   bgLight: '#F9FAFB',
   textMuted: '#6B7280',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-  errorBorder: '#FECACA',
 };
 
-interface CatalogProps { 
-    categoryOptions:{
+interface CatalogProps {
+  categoryOptions: {
     id: string;
     name: string;
     value: string;
     count: number;
-    }[]
-    selected:string[]
+  }[];
+  selected: string[];
+  onSelectCategory?: (categoryValue: string | null) => void;
 }
-export function Catalog ({ ...catalogProps }: CatalogProps) {
-    const {categoryOptions, selected} = catalogProps
 
-
-     
-    return (
-          <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '4px',
-            marginBottom: '20px',
-          }}
-        >
+export function Catalog({ categoryOptions, selected, onSelectCategory }: CatalogProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: '8px',
+        overflowX: 'auto',
+        paddingBottom: '4px',
+        marginBottom: '20px',
+        scrollbarWidth: 'thin',
+      }}
+    >
+      <button
+        onClick={() => onSelectCategory?.(null)}
+        style={{
+          flexShrink: 0,
+          padding: '6px 16px',
+          borderRadius: '999px',
+          fontSize: '12px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          border: 'none',
+          backgroundColor: selected.length === 0 ? colors.primary : colors.white,
+          color: selected.length === 0 ? colors.white : colors.textMuted,
+          outline: selected.length === 0 ? 'none' : `1px solid ${colors.border}`,
+          transition: 'all 0.15s ease',
+        }}
+      >
+        All Products
+      </button>
+      {categoryOptions.map((cat) => {
+        const isSelected = selected.includes(cat.value);
+        return (
           <button
-              style={{
+            key={cat.id}
+            onClick={() => onSelectCategory?.(cat.value)}
+            style={{
               flexShrink: 0,
               padding: '6px 16px',
               borderRadius: '999px',
@@ -45,41 +64,16 @@ export function Catalog ({ ...catalogProps }: CatalogProps) {
               fontWeight: 600,
               cursor: 'pointer',
               border: 'none',
-              backgroundColor: selected.length === 0 ? colors.primary : colors.white,
-              color: selected.length === 0 ? colors.white : colors.textMuted,
-              outline: selected.length === 0 ? 'none' : `1px solid ${colors.border}`,
+              backgroundColor: isSelected ? colors.primary : colors.white,
+              color: isSelected ? colors.white : colors.textMuted,
+              outline: isSelected ? 'none' : `1px solid ${colors.border}`,
+              transition: 'all 0.15s ease',
             }}
           >
-            All
+            {cat.name} {cat.count > 0 ? `(${cat.count})` : ''}
           </button>
-          {categoryOptions.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                if (selected.includes(cat.value)) {
-                } else {
-                }
-              }}
-              style={{
-                flexShrink: 0,
-                padding: '6px 16px',
-                borderRadius: '999px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                border: 'none',
-                backgroundColor: selected.includes(cat.value)
-                  ? colors.primary
-                  : colors.white,
-                color: selected.includes(cat.value) ? colors.white : colors.textMuted,
-                outline: selected.includes(cat.value)
-                  ? 'none'
-                  : `1px solid ${colors.border}`,
-              }}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-    )
+        );
+      })}
+    </div>
+  );
 }

@@ -6,10 +6,10 @@ export function sortProducts(products: Product[], sort: SortOption) {
 
   switch (sort) {
     case 'price-asc':
-      return result.sort((a, b) => a.price! - b.price!);
+      return result.sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0));
 
     case 'price-desc':
-      return result.sort((a, b) => b.price! - a.price!);
+      return result.sort((a, b) => Number(b.price ?? 0) - Number(a.price ?? 0));
 
     case 'newest':
       return result.reverse();

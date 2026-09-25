@@ -18,9 +18,10 @@ export function filterProducts(products: Product[], filters: FilterState) {
       filters.brands.some((brand) => normalizeValue(brand) === normalizeValue(product.brand))
     );
   }
-  products[0].price;
   result = result.filter(
-    (product) => product.price! >= filters.priceMin && product.price! <= filters.priceMax
+    (product) =>
+      Number(product.price ?? 0) >= filters.priceMin &&
+      Number(product.price ?? 0) <= filters.priceMax
   );
 
   return result;

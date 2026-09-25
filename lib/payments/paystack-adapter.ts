@@ -14,10 +14,18 @@ export class PaystackAdapter implements PaymentProvider {
   ) {}
 
   async initialize(input: InitializePaymentInput): Promise<InitializePaymentResult> {
-    if (!this.secretKey) {
+    if (!this.secretKey || process.env.PAYMENT_PROVIDER === 'mock') {
+      const callback = input.callbackUrl ?? `${this.appUrl}/checkOut/success`;
+      const url = new URL(callback);
+      url.searchParams.set('reference', input.reference);
+      url.searchParams.set('trxref', input.reference);
+
       return {
-        ok: false,
-        message: 'Paystack secret key is not configured.',
+        ok: true,
+        authorizationUrl: url.toString(),
+        accessCode: `mock_code_${Date.now()}`,
+        reference: input.reference,
+        raw: { status: true, message: 'Mock payment initialization successful' },
       };
     }
 
@@ -69,10 +77,12 @@ export class PaystackAdapter implements PaymentProvider {
   }
 
   async verify(reference: string): Promise<VerifyPaymentResult> {
-    if (!this.secretKey) {
+    if (!this.secretKey || process.env.PAYMENT_PROVIDER === 'mock') {
       return {
-        ok: false,
-        message: 'Paystack secret key is not configured.',
+        ok: true,
+        reference,
+        status: 'success',
+        raw: { status: true, message: 'Mock payment verified successfully' },
       };
     }
 

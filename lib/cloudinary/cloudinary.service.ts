@@ -8,11 +8,30 @@ const isCloudinaryNotFoundError = (error: string) => error === 'Not Found';
 export class CloudinaryService implements ICloudinaryInterface {
   async upload(input: CloudinaryUploadInput): Promise<CloudinaryUploadResult> {
     try {
+      if (typeof input.file === 'string') {
+        const result = await cloudinary.uploader.upload(input.file, {
+          folder: input.folder,
+          public_id: input.publicId,
+          overwrite: input.overwrite,
+        });
+
+        return {
+          publicId: result.public_id,
+          resourceType: result.resource_type,
+          secureUrl: result.secure_url,
+          bytes: result.bytes,
+          format: result.format,
+          height: result.height,
+          width: result.width,
+        };
+      }
+
       return await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: input.folder,
             public_id: input.publicId,
+            overwrite: input.overwrite,
           },
           (error, result) => {
             if (error) {
@@ -68,3 +87,6 @@ export class CloudinaryService implements ICloudinaryInterface {
     }
   }
 }
+
+export const cloudinaryService = new CloudinaryService();
+

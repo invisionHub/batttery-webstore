@@ -36,12 +36,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   className = '',
 }) => {
   const [localValue, setLocalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value);
     setLocalValue(value);
-  }, [value]);
+  }
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();

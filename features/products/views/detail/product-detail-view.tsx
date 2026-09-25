@@ -17,6 +17,16 @@ type ProductDetailViewProps = {
 };
 
 export function ProductDetailView({ product, relatedProducts }: ProductDetailViewProps) {
+  const galleryImages: string[] = (() => {
+    if (!product.images) return [];
+    try {
+      const parsed = JSON.parse(product.images);
+      return Array.isArray(parsed) ? parsed : [product.images];
+    } catch {
+      return [product.images];
+    }
+  })();
+
   return (
     <div style={{ backgroundColor: colors.bgLight, minHeight: '100vh' }}>
       <div
@@ -35,7 +45,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: '40px' }}>
-            <ProductGallery productName={product.name ?? 'Product'} images={[product.images!]} />
+            <ProductGallery productName={product.name ?? 'Product'} images={galleryImages} />
             <ProductDetails product={product} />
           </div>
         </div>

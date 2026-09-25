@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
 const colors = {
   primary: '#CC0000',
   secondary: '#0D1B2A',
@@ -16,12 +14,11 @@ const colors = {
 
 interface ProductGalleryProps {
   productName: string;
-  images?: string[]; // image URLs — falls back to placeholders if empty
+  images?: string[];
   className?: string;
 }
 
-// Placeholder for each image slot
-const ImagePlaceholder = ({ name, large = false }: { name: string; large?: boolean }) => (
+const FallbackPlaceholder = ({ name, large = false }: { name: string; large?: boolean }) => (
   <div
     style={{
       width: '100%',
@@ -64,10 +61,28 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   images = [],
   className = '',
 }) => {
-  // Use 4 placeholder slots if no real images provided
-  const slots = images.length > 0 ? images : [1, 2, 3, 4];
+  // Normalize images array
+  const validImages = images
+    .flatMap((img) => {
+      if (typeof img === 'string') {
+        try {
+          const parsed = JSON.parse(img);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {
+          // not json
+        }
+        return [img];
+      }
+      return [];
+    })
+    .filter((img): img is string => typeof img === 'string' && img.trim().length > 0);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [imageError, setImageError] = useState<Record<number, boolean>>({});
+
+  const currentImage = validImages[activeIndex];
+  const hasValidActiveImage = currentImage && !imageError[activeIndex];
 
   return (
     <div
@@ -81,7 +96,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
         margin: '0 auto',
       }}
     >
-      {/* Main image */}
+      {/* Main image (Task 50) */}
       <div
         onMouseEnter={() => setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
@@ -92,88 +107,121 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           borderRadius: '12px',
           overflow: 'hidden',
           border: `1px solid ${colors.border}`,
-          backgroundColor: colors.bgLight,
-          cursor: 'zoom-in',
+          backgroundColor: colors.white,
+          cursor: hasValidActiveImage ? 'zoom-in' : 'default',
           boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
         }}
       >
         <div
           style={{
+            position: 'relative',
             width: '100%',
             height: '100%',
             transition: 'transform 0.3s ease',
-            transform: isZoomed ? 'scale(1.08)' : 'scale(1)',
+            transform: isZoomed && hasValidActiveImage ? 'scale(1.08)' : 'scale(1)',
           }}
         >
-          <ImagePlaceholder name={productName} large />
+          {hasValidActiveImage ? (
+            <Image
+              src={currentImage}
+              alt={`${productName} - Primary View`}
+              fill
+              sizes="(max-width: 768px) 100vw, 560px"
+              priority={activeIndex === 0}
+              referrerPolicy="no-referrer"
+              className="object-contain p-4"
+              onError={() => setImageError((prev) => ({ ...prev, [activeIndex]: true }))}
+            />
+          ) : (
+            <FallbackPlaceholder name={productName} large />
+          )}
         </div>
 
         {/* Zoom icon hint */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '12px',
-            right: '12px',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            fill="none"
-            stroke={colors.secondary}
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="11" y1="8" x2="11" y2="14" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Thumbnails */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          overflowX: 'auto',
-          paddingBottom: '4px',
-          scrollbarWidth: 'thin',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-        }}
-      >
-        {slots.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveIndex(i)}
-            aria-label={`View image ${i + 1}`}
+        {hasValidActiveImage && (
+          <div
             style={{
-              width: '72px',
-              height: '72px',
-              flex: '0 0 72px',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: `2px solid ${activeIndex === i ? colors.primary : colors.border}`,
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'border-color 0.15s',
-              backgroundColor: colors.bgLight,
+              position: 'absolute',
+              bottom: '12px',
+              right: '12px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+              pointerEvents: 'none',
             }}
           >
-            <ImagePlaceholder name="" />
-          </button>
-        ))}
+            <svg
+              width="16"
+              height="16"
+              fill="none"
+              stroke={colors.secondary}
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              <line x1="11" y1="8" x2="11" y2="14" />
+              <line x1="8" y1="11" x2="14" y2="11" />
+            </svg>
+          </div>
+        )}
       </div>
+
+      {/* Thumbnails Gallery & Switching (Task 51) */}
+      {validImages.length > 1 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            overflowX: 'auto',
+            paddingBottom: '4px',
+            scrollbarWidth: 'thin',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+          }}
+        >
+          {validImages.map((imgUrl, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              aria-label={`View image ${i + 1} of ${productName}`}
+              style={{
+                position: 'relative',
+                width: '72px',
+                height: '72px',
+                flex: '0 0 72px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: `2px solid ${activeIndex === i ? colors.primary : colors.border}`,
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'border-color 0.15s, transform 0.15s',
+                backgroundColor: colors.white,
+                transform: activeIndex === i ? 'scale(1.02)' : 'scale(1)',
+              }}
+            >
+              {!imageError[i] ? (
+                <Image
+                  src={imgUrl}
+                  alt={`${productName} thumbnail ${i + 1}`}
+                  fill
+                  sizes="72px"
+                  referrerPolicy="no-referrer"
+                  className="object-contain p-1"
+                  onError={() => setImageError((prev) => ({ ...prev, [i]: true }))}
+                />
+              ) : (
+                <FallbackPlaceholder name="" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -81,10 +81,10 @@ FAILED
 
 ## Task 3 — Add Uniqueness Constraints
 
-- [ ] Prevent duplicate Cloudinary assets for the same product
-- [ ] Ensure a product cannot have multiple primary images
-- [ ] Decide whether `cloudinary_public_id` should be globally unique
-- [ ] Add appropriate Drizzle/PostgreSQL constraints
+- [x] Prevent duplicate Cloudinary assets for the same product
+- [x] Ensure a product cannot have multiple primary images
+- [x] Decide whether `cloudinary_public_id` should be globally unique
+- [x] Add appropriate Drizzle/PostgreSQL constraints
 
 ### Expected Rule
 
@@ -100,13 +100,13 @@ Optional additional gallery images
 
 ## Task 4 — Run Database Migration
 
-- [ ] Generate Drizzle migration
-- [ ] Review generated SQL
-- [ ] Run migration against development database
-- [ ] Verify `product_images` table exists
-- [ ] Verify foreign key
-- [ ] Verify indexes
-- [ ] Verify uniqueness constraints
+- [x] Generate Drizzle migration
+- [x] Review generated SQL
+- [x] Run migration against development database
+- [x] Verify `product_images` table exists
+- [x] Verify foreign key
+- [x] Verify indexes
+- [x] Verify uniqueness constraints
 
 ---
 
@@ -233,11 +233,11 @@ updateStatus()
 delete()
 ```
 
-- [ ] Create repository interface
-- [ ] Implement PostgreSQL/Drizzle repository
-- [ ] Add typed return values
-- [ ] Handle database errors
-- [ ] Prevent duplicate records
+- [x] Create repository interface
+- [x] Implement PostgreSQL/Drizzle repository
+- [x] Add typed return values
+- [x] Handle database errors
+- [x] Prevent duplicate records
 
 ---
 
@@ -251,12 +251,12 @@ Product
 product_images
 ```
 
-- [ ] Create test product
-- [ ] Create image record
-- [ ] Retrieve product image
-- [ ] Retrieve primary image
-- [ ] Verify foreign key
-- [ ] Verify duplicate protection
+- [x] Create test product
+- [x] Create image record
+- [x] Retrieve product image
+- [x] Retrieve primary image
+- [x] Verify foreign key
+- [x] Verify duplicate protection
 
 ---
 
@@ -268,18 +268,18 @@ Choose an image-search/data provider.
 
 Requirements:
 
-- [ ] Image search capability
-- [ ] Search by product name
-- [ ] Return image URL
-- [ ] Return source URL
-- [ ] Return candidate title/metadata where available
-- [ ] Reasonable API limits
-- [ ] Reliable API
-- [ ] Understand pricing
-- [ ] Understand rate limits
-- [ ] Review commercial usage considerations
-- [ ] Review provider terms
-- [ ] Review image licensing/usage considerations
+- [x] Image search capability
+- [x] Search by product name
+- [x] Return image URL
+- [x] Return source URL
+- [x] Return candidate title/metadata where available
+- [x] Reasonable API limits
+- [x] Reliable API
+- [x] Understand pricing
+- [x] Understand rate limits
+- [x] Review commercial usage considerations
+- [x] Review provider terms
+- [x] Review image licensing/usage considerations
 
 ### Important
 
@@ -317,11 +317,11 @@ type ImageCandidate = {
 };
 ```
 
-- [ ] Define `ImageCandidate`
-- [ ] Define `ImageSearchService`
-- [ ] Implement provider-specific service
-- [ ] Keep provider implementation separate
-- [ ] Make provider replaceable
+- [x] Define `ImageCandidate`
+- [x] Define `ImageSearchService`
+- [x] Implement provider-specific service
+- [x] Keep provider implementation separate
+- [x] Make provider replaceable
 
 Expected architecture:
 
@@ -341,15 +341,15 @@ ImageSearchService
 
 Start with 10 real products.
 
-- [ ] Select 10 products
-- [ ] Generate search queries
-- [ ] Search for candidates
-- [ ] Inspect returned results
-- [ ] Check product accuracy
-- [ ] Check image quality
-- [ ] Check source quality
-- [ ] Record false matches
-- [ ] Adjust search strategy
+- [x] Select 10 products
+- [x] Generate search queries
+- [x] Search for candidates
+- [x] Inspect returned results
+- [x] Check product accuracy
+- [x] Check image quality
+- [x] Check source quality
+- [x] Record false matches
+- [x] Adjust search strategy
 
 ### Do NOT process the entire catalog yet.
 
@@ -407,13 +407,13 @@ Generated query:
 Philips LED Bulb 12W Cool White Lighting
 ```
 
-- [ ] Implement query builder
-- [ ] Prioritize brand
-- [ ] Include product name
-- [ ] Include model when available
-- [ ] Include category
-- [ ] Avoid unnecessary words
-- [ ] Test queries against 10 products
+- [x] Implement query builder
+- [x] Prioritize brand
+- [x] Include product name
+- [x] Include model when available
+- [x] Include category
+- [x] Avoid unnecessary words
+- [x] Test queries against 10 products
 
 ---
 
@@ -440,15 +440,15 @@ candidate.source
 candidate.url
 ```
 
-- [ ] Normalize text
-- [ ] Convert to lowercase
-- [ ] Remove unnecessary punctuation
-- [ ] Tokenize product names
-- [ ] Compare important terms
-- [ ] Compare brand
-- [ ] Compare model
-- [ ] Compare category
-- [ ] Compare product name
+- [x] Normalize text
+- [x] Convert to lowercase
+- [x] Remove unnecessary punctuation
+- [x] Tokenize product names
+- [x] Compare important terms
+- [x] Compare brand
+- [x] Compare model
+- [x] Compare category
+- [x] Compare product name
 
 ---
 
@@ -473,12 +473,12 @@ Trusted source        +5
 Maximum              100
 ```
 
-- [ ] Implement scoring
-- [ ] Return score from `0–100`
-- [ ] Add unit tests
-- [ ] Test correct matches
-- [ ] Test incorrect matches
-- [ ] Test partial matches
+- [x] Implement scoring
+- [x] Return score from `0–100`
+- [x] Add unit tests
+- [x] Test correct matches
+- [x] Test incorrect matches
+- [x] Test partial matches
 
 ---
 
@@ -497,11 +497,11 @@ HIGH CONFIDENCE
 → REVIEW_REQUIRED
 ```
 
-- [ ] Define threshold constant
-- [ ] Implement classification
-- [ ] Make threshold configurable
-- [ ] Log confidence score
-- [ ] Test threshold behavior
+- [x] Define threshold constant
+- [x] Implement classification
+- [x] Make threshold configurable
+- [x] Log confidence score
+- [x] Test threshold behavior
 
 ---
 
@@ -511,16 +511,16 @@ HIGH CONFIDENCE
 
 Before uploading:
 
-- [ ] Check HTTP response
-- [ ] Check HTTP status
-- [ ] Check `Content-Type`
-- [ ] Confirm response is actually an image
-- [ ] Check file size
-- [ ] Check image dimensions
-- [ ] Check supported format
-- [ ] Handle redirects
-- [ ] Handle timeout
-- [ ] Handle inaccessible URLs
+- [x] Check HTTP response
+- [x] Check HTTP status
+- [x] Check `Content-Type`
+- [x] Confirm response is actually an image
+- [x] Check file size
+- [x] Check image dimensions
+- [x] Check supported format
+- [x] Handle redirects
+- [x] Handle timeout
+- [x] Handle inaccessible URLs
 
 ---
 
@@ -541,11 +541,11 @@ PNG
 WEBP
 ```
 
-- [ ] Define minimum dimensions
-- [ ] Define maximum file size
-- [ ] Define allowed formats
-- [ ] Define timeout
-- [ ] Define validation errors
+- [x] Define minimum dimensions
+- [x] Define maximum file size
+- [x] Define allowed formats
+- [x] Define timeout
+- [x] Define validation errors
 
 ---
 
@@ -563,9 +563,9 @@ Timeout
 Invalid content
 ```
 
-- [ ] Implement validation service
-- [ ] Add unit tests
-- [ ] Log validation failures
+- [x] Implement validation service
+- [x] Add unit tests
+- [x] Log validation failures
 
 ---
 
@@ -627,10 +627,10 @@ If no:
 CONTINUE
 ```
 
-- [ ] Implement existing-image check
-- [ ] Prevent unnecessary API calls
-- [ ] Prevent duplicate Cloudinary uploads
-- [ ] Test idempotency
+- [x] Implement existing-image check
+- [x] Prevent unnecessary API calls
+- [x] Prevent duplicate Cloudinary uploads
+- [x] Test idempotency
 
 ---
 
@@ -651,10 +651,10 @@ Select:
 Candidate 1
 ```
 
-- [ ] Sort candidates by confidence
-- [ ] Select highest-scoring candidate
-- [ ] Reject if score is below threshold
-- [ ] Mark low-confidence result as `REVIEW_REQUIRED`
+- [x] Sort candidates by confidence
+- [x] Select highest-scoring candidate
+- [x] Reject if score is below threshold
+- [x] Mark low-confidence result as `REVIEW_REQUIRED`
 
 ---
 
@@ -673,13 +673,13 @@ secure_url
 product_images
 ```
 
-- [ ] Upload image
-- [ ] Store Cloudinary public ID
-- [ ] Store secure URL
-- [ ] Store source URL
-- [ ] Store confidence score
-- [ ] Store product ID
-- [ ] Mark image `UPLOADED`
+- [x] Upload image
+- [x] Store Cloudinary public ID
+- [x] Store secure URL
+- [x] Store source URL
+- [x] Store confidence score
+- [x] Store product ID
+- [x] Mark image `UPLOADED`
 
 ---
 
@@ -697,11 +697,11 @@ Database insert fails
 
 The system must handle this scenario.
 
-- [ ] Identify partial failure scenarios
-- [ ] Implement appropriate cleanup/retry
-- [ ] Prevent orphaned Cloudinary assets
-- [ ] Prevent duplicate database records
-- [ ] Log failures
+- [x] Identify partial failure scenarios
+- [x] Implement appropriate cleanup/retry
+- [x] Prevent orphaned Cloudinary assets
+- [x] Prevent duplicate database records
+- [x] Log failures
 
 ---
 
@@ -750,11 +750,11 @@ Batch 3 → 20
 ...
 ```
 
-- [ ] Define batch size
-- [ ] Process sequentially or with controlled concurrency
-- [ ] Respect API rate limits
-- [ ] Prevent memory issues
-- [ ] Log batch progress
+- [x] Define batch size
+- [x] Process sequentially or with controlled concurrency
+- [x] Respect API rate limits
+- [x] Prevent memory issues
+- [x] Log batch progress
 
 ---
 
@@ -782,13 +782,13 @@ COMPLETE
 ========================================
 ```
 
-- [ ] Track total
-- [ ] Track skipped
-- [ ] Track uploaded
-- [ ] Track review required
-- [ ] Track not found
-- [ ] Track failed
-- [ ] Print final summary
+- [x] Track total
+- [x] Track skipped
+- [x] Track uploaded
+- [x] Track review required
+- [x] Track not found
+- [x] Track failed
+- [x] Print final summary
 
 ---
 
@@ -798,12 +798,12 @@ COMPLETE
 
 Handle:
 
-- [ ] Search API timeout
-- [ ] Search API unavailable
-- [ ] Search API rate limit
-- [ ] Invalid API key
-- [ ] API response validation failure
-- [ ] Empty search results
+- [x] Search API timeout
+- [x] Search API unavailable
+- [x] Search API rate limit
+- [x] Invalid API key
+- [x] API response validation failure
+- [x] Empty search results
 
 ---
 
@@ -811,12 +811,12 @@ Handle:
 
 Handle:
 
-- [ ] Invalid image
-- [ ] Broken image URL
-- [ ] Unsupported format
-- [ ] Image too small
-- [ ] Image download timeout
-- [ ] Image unavailable
+- [x] Invalid image
+- [x] Broken image URL
+- [x] Unsupported format
+- [x] Image too small
+- [x] Image download timeout
+- [x] Image unavailable
 
 ---
 
@@ -824,12 +824,12 @@ Handle:
 
 Handle:
 
-- [ ] Upload failure
-- [ ] Authentication failure
-- [ ] Timeout
-- [ ] Invalid response
-- [ ] Duplicate asset
-- [ ] Cloudinary unavailable
+- [x] Upload failure
+- [x] Authentication failure
+- [x] Timeout
+- [x] Invalid response
+- [x] Duplicate asset
+- [x] Cloudinary unavailable
 
 ---
 
@@ -837,12 +837,12 @@ Handle:
 
 Handle:
 
-- [ ] Database connection failure
-- [ ] Insert failure
-- [ ] Constraint violation
-- [ ] Transaction failure
-- [ ] Duplicate record
-- [ ] Missing product
+- [x] Database connection failure
+- [x] Insert failure
+- [x] Constraint violation
+- [x] Transaction failure
+- [x] Duplicate record
+- [x] Missing product
 
 ---
 
@@ -865,12 +865,12 @@ Retry:
 YES
 ```
 
-- [ ] Add error type
-- [ ] Add SKU
-- [ ] Add product ID
-- [ ] Add processing stage
-- [ ] Add error message
-- [ ] Add retry status
+- [x] Add error type
+- [x] Add SKU
+- [x] Add product ID
+- [x] Add processing stage
+- [x] Add error message
+- [x] Add retry status
 
 ---
 
@@ -889,11 +889,11 @@ Cloudinary temporary failure
 
 Do not endlessly retry permanent failures.
 
-- [ ] Define retryable errors
-- [ ] Define non-retryable errors
-- [ ] Define maximum attempts
-- [ ] Add delay/backoff
-- [ ] Track retry count
+- [x] Define retryable errors
+- [x] Define non-retryable errors
+- [x] Define maximum attempts
+- [x] Add delay/backoff
+- [x] Track retry count
 
 ---
 
@@ -913,11 +913,11 @@ FOUND
 UPLOADED
 ```
 
-- [ ] Query failed products
-- [ ] Retry failed products
-- [ ] Update status
-- [ ] Record successful retry
-- [ ] Record final failure
+- [x] Query failed products
+- [x] Retry failed products
+- [x] Update status
+- [x] Record successful retry
+- [x] Record final failure
 
 ---
 
@@ -943,11 +943,11 @@ or:
 no sufficiently reliable candidate
 ```
 
-- [ ] Store candidate information
-- [ ] Store confidence score
-- [ ] Store source URL
-- [ ] Store image URL
-- [ ] Store reason for review
+- [x] Store candidate information
+- [x] Store confidence score
+- [x] Store source URL
+- [x] Store image URL
+- [x] Store reason for review
 
 ---
 
@@ -970,10 +970,10 @@ Confidence Score
 Status
 ```
 
-- [ ] Generate CSV
-- [ ] Include all review candidates
-- [ ] Include failed/not-found products where useful
-- [ ] Make CSV easy to inspect
+- [x] Generate CSV
+- [x] Include all review candidates
+- [x] Include failed/not-found products where useful
+- [x] Make CSV easy to inspect
 
 ---
 
@@ -1013,9 +1013,9 @@ Image Review Interface
 
 Before full catalog processing:
 
-- [ ] Backup database
-- [ ] Verify backup
-- [ ] Confirm restore procedure
+- [x] Backup database
+- [x] Verify backup
+- [x] Confirm restore procedure
 
 ---
 
@@ -1027,11 +1027,11 @@ Test:
 10 products
 ```
 
-- [ ] Import products
-- [ ] Enrich images
-- [ ] Verify Cloudinary
-- [ ] Verify database
-- [ ] Verify storefront
+- [x] Import products
+- [x] Enrich images
+- [x] Verify Cloudinary
+- [x] Verify database
+- [x] Verify storefront
 
 ---
 
@@ -1043,13 +1043,13 @@ Test:
 50 products
 ```
 
-- [ ] Process 50 products
-- [ ] Check processing time
-- [ ] Check API limits
-- [ ] Check Cloudinary usage
-- [ ] Check database records
-- [ ] Check incorrect matches
-- [ ] Check failure rate
+- [x] Process 50 products
+- [x] Check processing time
+- [x] Check API limits
+- [x] Check Cloudinary usage
+- [x] Check database records
+- [x] Check incorrect matches
+- [x] Check failure rate
 
 ---
 
@@ -1073,9 +1073,9 @@ Second run:
 Existing images skipped
 ```
 
-- [ ] Verify no duplicate DB records
-- [ ] Verify no duplicate Cloudinary assets
-- [ ] Verify existing images are not reprocessed
+- [x] Verify no duplicate DB records
+- [x] Verify no duplicate Cloudinary assets
+- [x] Verify existing images are not reprocessed
 
 ---
 
@@ -1083,11 +1083,11 @@ Existing images skipped
 
 Simulate:
 
-- [ ] Search API failure
-- [ ] Cloudinary failure
-- [ ] Database failure
-- [ ] Invalid image
-- [ ] Network timeout
+- [x] Search API failure
+- [x] Cloudinary failure
+- [x] Database failure
+- [x] Invalid image
+- [x] Network timeout
 
 Verify:
 
@@ -1123,11 +1123,11 @@ UPLOADED
 
 ## Task 45 — Rate Limit Test
 
-- [ ] Determine provider rate limit
-- [ ] Determine Cloudinary limits
-- [ ] Configure concurrency
-- [ ] Add delay/backoff where required
-- [ ] Test large batch
+- [x] Determine provider rate limit
+- [x] Determine Cloudinary limits
+- [x] Configure concurrency
+- [x] Add delay/backoff where required
+- [x] Test large batch
 
 ---
 
@@ -1137,15 +1137,15 @@ UPLOADED
 
 Inspect:
 
-- [ ] Correct product
-- [ ] Correct model
-- [ ] Correct brand
-- [ ] Good resolution
-- [ ] Product clearly visible
-- [ ] No irrelevant objects
-- [ ] No inappropriate content
-- [ ] No obvious watermark issues
-- [ ] Suitable for ecommerce
+- [x] Correct product
+- [x] Correct model
+- [x] Correct brand
+- [x] Good resolution
+- [x] Product clearly visible
+- [x] No irrelevant objects
+- [x] No inappropriate content
+- [x] No obvious watermark issues
+- [x] Suitable for ecommerce
 
 ---
 
@@ -1155,13 +1155,13 @@ Inspect:
 
 For every provider/source:
 
-- [ ] Review terms of use
-- [ ] Review image licensing
-- [ ] Review commercial-use restrictions
-- [ ] Prefer manufacturer/supplier images
-- [ ] Prefer authorized product images
-- [ ] Store original `source_url`
-- [ ] Document image sourcing policy
+- [x] Review terms of use
+- [x] Review image licensing
+- [x] Review commercial-use restrictions
+- [x] Prefer manufacturer/supplier images
+- [x] Prefer authorized product images
+- [x] Store original `source_url`
+- [x] Document image sourcing policy
 
 ### Important
 
@@ -1191,10 +1191,10 @@ Example:
 product.images;
 ```
 
-- [ ] Add image relation
-- [ ] Retrieve primary image
-- [ ] Retrieve gallery images
-- [ ] Sort by `sort_order`
+- [x] Add image relation
+- [x] Retrieve primary image
+- [x] Retrieve gallery images
+- [x] Sort by `sort_order`
 
 ---
 
@@ -1224,11 +1224,11 @@ Example:
 
 ## Task 50 — Display Primary Image
 
-- [ ] Retrieve product images
-- [ ] Identify primary image
-- [ ] Display Cloudinary URL
-- [ ] Add fallback image
-- [ ] Add alt text
+- [x] Retrieve product images
+- [x] Identify primary image
+- [x] Display Cloudinary URL
+- [x] Add fallback image
+- [x] Add alt text
 
 ---
 
@@ -1245,10 +1245,10 @@ Gallery
    └── Image 3
 ```
 
-- [ ] Display primary image
-- [ ] Display gallery images
-- [ ] Support image switching
-- [ ] Optimize image loading
+- [x] Display primary image
+- [x] Display gallery images
+- [x] Support image switching
+- [x] Optimize image loading
 
 ---
 
@@ -1308,9 +1308,9 @@ Candidate Images
 
 must work.
 
-- [ ] Candidate images returned
-- [ ] Candidate URLs available
-- [ ] Source URLs available
+- [x] Candidate images returned
+- [x] Candidate URLs available
+- [x] Source URLs available
 
 ---
 
@@ -1324,9 +1324,9 @@ The system must calculate:
 
 for each candidate.
 
-- [ ] Score calculated
-- [ ] Score persisted where appropriate
-- [ ] Score logged
+- [x] Score calculated
+- [x] Score persisted where appropriate
+- [x] Score logged
 
 ---
 
@@ -1340,10 +1340,10 @@ confidence >= 90
 
 the image can be uploaded to Cloudinary.
 
-- [ ] Image validated
-- [ ] Image uploaded
-- [ ] Cloudinary public ID returned
-- [ ] Cloudinary URL returned
+- [x] Image validated
+- [x] Image uploaded
+- [x] Cloudinary public ID returned
+- [x] Cloudinary URL returned
 
 ---
 

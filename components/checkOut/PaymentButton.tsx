@@ -128,7 +128,7 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
           lineHeight: 1.6,
         }}
       >
-        By placing your order, you agree to JavaL's{' '}
+        By placing your order, you agree to JavaL&apos;s{' '}
         <a href="/terms" style={{ color: colors.primary, textDecoration: 'none' }}>
           Terms of Service
         </a>{' '}

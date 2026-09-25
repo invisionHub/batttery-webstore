@@ -22,9 +22,13 @@ function normalizeSlug(value: string): string {
 }
 
 export function transformRow(row: ExcelProduct): Product {
+  const sku = toString(row.SKU);
+  const slug = normalizeSlug(toString(row['Slug (URL)']));
+
   return {
-    sku: toString(row.SKU),
-    slug: normalizeSlug(toString(row['Slug (URL)'])),
+    id: sku || slug,
+    sku,
+    slug,
     name: toString(row['Product Name']),
     brand: toString(row.Brand),
     category: toString(row.Category),

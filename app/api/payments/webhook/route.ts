@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createHmac, timingSafeEqual } from 'crypto';
 import { eq } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
         ? 'FAILED'
         : 'PENDING';
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async (tx: any) => {
     await tx.insert(paymentEventTable).values({
       paymentId: payment.id,
       provider: 'paystack',

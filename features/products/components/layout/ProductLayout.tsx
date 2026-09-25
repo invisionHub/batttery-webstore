@@ -5,33 +5,19 @@ interface IProductLayoutProps {
   children: ReactNode;
 }
 
-const colors = {
-  primary: '#CC0000',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-  errorBorder: '#FECACA',
-};
-
-export const ProductLayout = ({ ...productLayoutProps }: IProductLayoutProps) => {
-  const { SiderBar, children } = productLayoutProps;
+export const ProductLayout = ({ SiderBar, children }: IProductLayoutProps) => {
   return (
-    <div className="">
-      <div className="flex gap-3">
-        <div className="hidden lg:block" style={{ width: '220px', flexShrink: 0 }}>
+    <div className="w-full">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-64 shrink-0 sticky top-24">
           {SiderBar}
-        </div>
-        <div className="w-full">
-          <div
-            className={`flex items-center justify-between gap-3 mb-4 ml-6 mr-6 pt-2 pb-3.5 pl-3 pr-3 rounded-[10px] bg-[${colors.white}] border-s-0  border-[${colors.border}]`}
-          >
-            {children}
-          </div>
-        </div>
+        </aside>
+
+        {/* Product Grid Area */}
+        <main className="w-full flex-1 min-w-0">
+          {children}
+        </main>
       </div>
     </div>
   );

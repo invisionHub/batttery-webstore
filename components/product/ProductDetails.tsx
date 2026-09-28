@@ -1,318 +1,190 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
 import { Product } from '@/database/types';
-
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
-const colors = {
-  primary: '#CC0000',
-  primaryHover: '#16A34A',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  textMuted: '#6B7280',
-  badgeSale: '#EF4444',
-  badgeNew: '#3B82F6',
-  badgeBest: '#F59E0B',
-  successBg: '#F0FDF4',
-  successBorder: '#BBF7D0',
-};
-
-const colorOptions = [
-  { name: 'Matte Black', hex: '#1a1a1a' },
-  { name: 'Pearl White', hex: '#F5F5F5' },
-  { name: 'Champagne Gold', hex: '#C9A876' },
-];
+import { formatPrice } from '@/utils/utils';
 
 interface ProductDetailsProps {
   product: Product;
   className?: string;
 }
 
-const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = '' }) => {
-  const [selectedColor, setSelectedColor] = useState(0);
+export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, className = '' }) => {
   const [quantity, setQuantity] = useState(1);
-  const [wishlisted, setWishlisted] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+  const router = useRouter();
 
-  // ── Zustand store hooks ──
   const addProduct = useCartStore((state) => state.addProduct);
-  const isInCart = useCartStore((state) => state.isInCart);
   const openCartDrawer = useUIStore((state) => state.openCartDrawer);
 
-  const inCart = isInCart(product.id);
-
-  // ── Add to Cart — now wired to Zustand ──
   const handleAddToCart = () => {
-    addProduct(product, quantity, colorOptions[selectedColor].name);
-    openCartDrawer(); // slide open the cart drawer immediately
+    addProduct(product, quantity);
+    setIsAdded(true);
+    openCartDrawer();
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    addProduct(product, quantity);
+    router.push('/checkOut');
   };
 
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Badge + Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            color: colors.primary,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}
-        >
-          {product.brand}
+    <div className={`flex flex-col gap-6 ${className}`}>
+      {/* Brand & Category Kicker */}
+      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <span className="text-[#CC0000] font-bold uppercase tracking-wider">
+          {product.category?.replace(/-/g, ' ')}
         </span>
+        {product.brand && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-slate-700">Brand: {product.brand}</span>
+          </>
+        )}
+        {product.sku && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span className="font-mono text-slate-400">SKU: {product.sku}</span>
+          </>
+        )}
       </div>
 
-      {/* Title */}
-      <h1
-        style={{
-          fontSize: '26px',
-          fontWeight: 800,
-          color: colors.secondary,
-          margin: 0,
-          lineHeight: 1.3,
-        }}
-      >
+      {/* Main Title */}
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
         {product.name}
       </h1>
 
-      {/* Rating */}
-
-      {/* Price */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '30px', fontWeight: 900, color: colors.secondary }}>
-          {product.price}
-        </span>
-      </div>
-
-      {/* Stock status */}
-
-      {/* Description */}
-      <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7, margin: 0 }}>
-        {product.shortDescription}
-      </p>
-
-      <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
-
-      {/* Color selector */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary }}>
-          Color:{' '}
-          <span style={{ fontWeight: 400, color: colors.textMuted }}>
-            {colorOptions[selectedColor].name}
+      {/* Price & Stock Status */}
+      <div className="flex items-baseline gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <div>
+          <span className="text-3xl font-black text-slate-900 tabular-nums">
+            {formatPrice(product.price!)}
           </span>
-        </span>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {colorOptions.map((color, i) => (
-            <button
-              key={color.name}
-              onClick={() => setSelectedColor(i)}
-              aria-label={`Select ${color.name}`}
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: color.hex,
-                border: `2px solid ${selectedColor === i ? colors.primary : 'transparent'}`,
-                outline: selectedColor === i ? 'none' : `1px solid ${colors.border}`,
-                outlineOffset: '2px',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            />
-          ))}
+          <span className="block text-[11px] text-slate-500 mt-0.5">
+            Inclusive of standard VAT · Verified commercial grade
+          </span>
         </div>
-      </div>
 
-      {/* Quantity + Add to Cart */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          flexWrap: 'wrap',
-          marginTop: '4px',
-        }}
-      >
-        {/* Quantity stepper */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            border: `1.5px solid ${colors.border}`,
-            borderRadius: '8px',
-            overflow: 'hidden',
-          }}
-        >
-          <button
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            aria-label="Decrease quantity"
-            style={{
-              width: '36px',
-              height: '40px',
-              border: 'none',
-              backgroundColor: colors.white,
-              color: colors.secondary,
-              fontSize: '16px',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            −
-          </button>
+        <div className="ml-auto">
           <span
-            style={{
-              width: '40px',
-              textAlign: 'center',
-              fontSize: '14px',
-              fontWeight: 700,
-              color: colors.secondary,
-            }}
+            className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg ${
+              product.stockStatus === 'Out of Stock'
+                ? 'bg-red-100 text-red-700'
+                : 'bg-emerald-100 text-emerald-800'
+            }`}
           >
-            {quantity}
+            <span className="w-2 h-2 rounded-full bg-current" />
+            <span>{product.stockStatus ?? 'In Stock · Ready to Ship'}</span>
           </span>
-          <button
-            onClick={() => setQuantity((q) => q + 1)}
-            aria-label="Increase quantity"
-            style={{
-              width: '36px',
-              height: '40px',
-              border: 'none',
-              backgroundColor: colors.white,
-              color: colors.secondary,
-              fontSize: '16px',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            +
-          </button>
         </div>
-
-        {/* Add to Cart — wired to cartStore */}
-        <button
-          onClick={handleAddToCart}
-          style={{
-            flex: 1,
-            minWidth: '180px',
-            height: '44px',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: inCart ? colors.primaryHover : colors.primary,
-            color: colors.white,
-            fontSize: '14px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'background-color 0.2s',
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            fill="none"
-            stroke={colors.white}
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-            <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {inCart ? 'Added — View Cart' : 'Add to Cart'}
-        </button>
-
-        {/* Wishlist */}
-        <button
-          onClick={() => setWishlisted(!wishlisted)}
-          aria-label="Add to wishlist"
-          style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '8px',
-            border: `1.5px solid ${colors.border}`,
-            backgroundColor: colors.white,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill={wishlisted ? colors.badgeSale : 'none'}
-            stroke={wishlisted ? colors.badgeSale : colors.secondary}
-            strokeWidth="2"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-          </svg>
-        </button>
       </div>
 
-      {/* Buy Now */}
-      <button
-        style={{
-          width: '100%',
-          height: '44px',
-          borderRadius: '8px',
-          border: `2px solid ${colors.secondary}`,
-          backgroundColor: 'transparent',
-          color: colors.secondary,
-          fontSize: '14px',
-          fontWeight: 700,
-          cursor: 'pointer',
-        }}
-      >
-        Buy It Now
-      </button>
+      {/* Short Description */}
+      {product.shortDescription && (
+        <p className="text-sm text-slate-600 leading-relaxed">
+          {product.shortDescription}
+        </p>
+      )}
 
-      {/* Trust badges */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '8px',
-          marginTop: '8px',
-          paddingTop: '16px',
-          borderTop: `1px solid ${colors.border}`,
-        }}
-      >
-        {[
-          { label: 'Free Delivery', icon: '🚚' },
-          { label: '2 Year Warranty', icon: '🛡️' },
-          { label: 'Secure Payment', icon: '🔒' },
-        ].map((item) => (
-          <div
-            key={item.label}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              textAlign: 'center',
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>{item.icon}</span>
-            <span style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 500 }}>
-              {item.label}
+      {/* Engineering Specifications Matrix */}
+      <div className="rounded-xl border border-slate-200 p-4 space-y-3 bg-white">
+        <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          Core Technical Specifications
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <span className="block text-slate-500 text-[11px]">Primary Application</span>
+            <span className="font-bold text-slate-800">
+              Power Backup &amp; Electrical Setup
             </span>
           </div>
-        ))}
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <span className="block text-slate-500 text-[11px]">Direct Warranty</span>
+            <span className="font-bold text-slate-800">2-Year Certified Coverage</span>
+          </div>
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <span className="block text-slate-500 text-[11px]">Compliance Standard</span>
+            <span className="font-bold text-slate-800">CE / SONCAP Approved</span>
+          </div>
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <span className="block text-slate-500 text-[11px]">Quality Inspection</span>
+            <span className="font-bold text-slate-800">100% Tested Prior Dispatch</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quantity & Purchase CTAs */}
+      <div className="flex flex-col gap-3 pt-2">
+        <div className="flex items-center gap-3">
+          {/* Quantity Stepper */}
+          <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden bg-white shadow-2xs">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-10 h-12 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors text-base font-bold cursor-pointer"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-12 text-center text-sm font-bold text-slate-900 tabular-nums">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-10 h-12 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors text-base font-bold cursor-pointer"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Add to Cart Button */}
+          <button
+            onClick={handleAddToCart}
+            className={`flex-1 h-12 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] cursor-pointer ${
+              isAdded
+                ? 'bg-emerald-600 text-white shadow-emerald-900/20'
+                : 'bg-[#CC0000] hover:bg-[#B30000] text-white shadow-red-900/30'
+            }`}
+          >
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+              <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>{isAdded ? '✓ Added to Cart' : 'Add to Cart'}</span>
+          </button>
+        </div>
+
+        {/* Buy Now Direct Checkout */}
+        <button
+          onClick={handleBuyNow}
+          className="w-full h-12 rounded-xl border-2 border-slate-900 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-all active:scale-[0.98] cursor-pointer"
+        >
+          Buy It Now — Fast Checkout
+        </button>
+      </div>
+
+      {/* Trust & Delivery Guarantees */}
+      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-200 text-center">
+        <div className="p-3 rounded-lg bg-slate-50">
+          <div className="text-lg">🚚</div>
+          <div className="text-[11px] font-bold text-slate-900 mt-1">Fast Dispatch</div>
+          <div className="text-[10px] text-slate-500">Tracked nationwide</div>
+        </div>
+        <div className="p-3 rounded-lg bg-slate-50">
+          <div className="text-lg">🛡️</div>
+          <div className="text-[11px] font-bold text-slate-900 mt-1">2-Yr Warranty</div>
+          <div className="text-[10px] text-slate-500">Official guarantee</div>
+        </div>
+        <div className="p-3 rounded-lg bg-slate-50">
+          <div className="text-lg">📞</div>
+          <div className="text-[11px] font-bold text-slate-900 mt-1">Tech Advice</div>
+          <div className="text-[10px] text-slate-500">Talk to engineers</div>
+        </div>
       </div>
     </div>
   );

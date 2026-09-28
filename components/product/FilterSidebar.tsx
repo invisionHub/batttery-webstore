@@ -164,7 +164,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   filters,
   onChange,
   categories = [],
-  brands = [],
   className = '',
 }) => {
   const [priceMin, setPriceMin] = useState(String(filters.priceMin));
@@ -175,13 +174,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       ? filters.categories.filter((c) => c !== slug)
       : [...filters.categories, slug];
     onChange({ ...filters, categories: updated });
-  };
-
-  const toggleBrand = (slug: string) => {
-    const updated = filters.brands.includes(slug)
-      ? filters.brands.filter((b) => b !== slug)
-      : [...filters.brands, slug];
-    onChange({ ...filters, brands: updated });
   };
 
   const applyPrice = () => {
@@ -368,19 +360,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       </FilterSection>
 
-      {/* ── BRAND FILTER ── */}
-      <FilterSection title="Brand">
-        {brands.map((brand) => (
-          <CheckItem
-            key={brand.id}
-            label={brand.name}
-            checked={filters.brands.includes(brand.value)}
-            count={brand.count}
-            onChange={() => toggleBrand(brand.value)}
-          />
-        ))}
-      </FilterSection>
-
       {/* ── RATING FILTER ── */}
       <FilterSection title="Rating">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -443,6 +422,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
       {/* Apply button */}
       <button
+        onClick={applyPrice}
         style={{
           width: '100%',
           padding: '10px',

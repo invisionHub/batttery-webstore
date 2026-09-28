@@ -19,6 +19,7 @@ function parseCliArgs(): BatchOptions {
   const options: BatchOptions = {
     batchSize: 5,
     delayMs: 1000,
+    limit: 100, // Default to 100 products first due to API rate/credit limits
     forceOverwrite: false,
     uploadLowConfidenceForReview: false,
     retryFailedOnly: false,
@@ -29,6 +30,8 @@ function parseCliArgs(): BatchOptions {
     if (args[i] === '--limit' && args[i + 1]) {
       options.limit = parseInt(args[i + 1], 10);
       i++;
+    } else if (args[i] === '--all') {
+      options.limit = undefined;
     } else if (args[i] === '--batch-size' && args[i + 1]) {
       options.batchSize = parseInt(args[i + 1], 10);
       i++;

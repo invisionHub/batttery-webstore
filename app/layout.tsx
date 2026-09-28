@@ -5,14 +5,14 @@ import Footer from '@/components/layout/Footer';
 import QueryProvider from '@/components/providers/QueryProvider';
 
 export const metadata: Metadata = {
-  title: 'JavaL — Light & Plug Concept',
-  description: 'Premium electrical products — lights, plugs, appliances and everything in between.',
+  title: 'Battery Store & Electrical — Certified High-Capacity Power Systems',
+  description: 'Certified lithium LiFePO4 batteries, hybrid inverters, circuit breakers, and power distribution systems with 2-year direct warranty and nationwide dispatch.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, backgroundColor: '#F9FAFB' }}>
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans selection:bg-red-500 selection:text-white">
         <QueryProvider>
           <Header />
           <main>{children}</main>

@@ -1,5 +1,3 @@
-import { FilterSidebar } from "@/components/product";
-
 const colors = {
   primary: '#CC0000',
   secondary: '#0D1B2A',

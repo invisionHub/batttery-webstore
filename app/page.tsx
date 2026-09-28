@@ -1,20 +1,28 @@
-import HeroSection from '@/components/sections/HeroSection';
-import FeaturesBar from '@/components/sections/FeaturesBar';
-import CategoryGrid from '@/components/sections/CategoryGrid';
-import FeaturedProducts from '@/components/sections/FeaturedProducts';
-import PromoBanner from '@/components/sections/PromoBanner';
-import FeaturedBrands from '@/components/sections/FeaturedBrands';
-import BlogSection from '@/components/sections/BlogSection';
-import NewsletterCTA from '@/components/sections/NewsletterCTA';
+import { fetchProducts } from '@/features/products/actions/get-products';
+import {
+  HeroSection,
+  FeaturesBar,
+  CategoryGrid,
+  FeaturedProducts,
+  BatteryCalculator,
+  BatteryGuideSection,
+  TrustSection,
+  NewsletterCTA,
+} from '@/components/sections';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { product: products } = await fetchProducts();
+
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <HeroSection />
       <FeaturesBar />
       <CategoryGrid />
-      <FeaturedBrands />
+      <FeaturedProducts products={products || []} />
+      <BatteryCalculator />
+      <BatteryGuideSection />
+      <TrustSection />
       <NewsletterCTA />
-    </>
+    </div>
   );
 }

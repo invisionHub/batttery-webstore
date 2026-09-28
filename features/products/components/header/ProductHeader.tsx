@@ -1,17 +1,5 @@
 import Link from 'next/link';
 
-const colors = {
-  primary: '#CC0000',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-  errorBorder: '#FECACA',
-};
-
 interface IProductHeaderProps {
   search: string;
   setSearch: (param: string) => void;
@@ -26,66 +14,40 @@ export function ProductHeader({
   onSearchSubmit,
 }: IProductHeaderProps) {
   return (
-    <div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-      style={{ paddingTop: '20px', paddingBottom: '24px' }}
-    >
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          fontSize: '12px',
-          color: colors.textMuted,
-          marginBottom: '16px',
-        }}
-      >
-        <Link href="/" style={{ color: colors.textMuted, textDecoration: 'none' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
+      {/* Breadcrumb without pills */}
+      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-4">
+        <Link href="/" className="hover:text-slate-900 transition-colors">
           Home
         </Link>
-        <span>/</span>
-        <span style={{ color: colors.secondary, fontWeight: 600 }}>All Products</span>
+        <span aria-hidden="true">/</span>
+        <span className="font-semibold text-slate-900">Battery &amp; Power Catalog</span>
       </nav>
 
-      <div
-        className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
-        style={{ marginBottom: '16px' }}
-      >
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: colors.secondary, margin: 0 }}>
-            Electrical & Lighting Catalog
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Battery &amp; Electrical Equipment Catalog
           </h1>
-          <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0 0' }}>
-            Showing {resultCount} {resultCount === 1 ? 'product' : 'products'}
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Showing <span className="font-bold text-slate-800 tabular-nums">{resultCount}</span> {resultCount === 1 ? 'verified product' : 'verified products'} in stock
           </p>
         </div>
+
+        {/* Server Search form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             onSearchSubmit?.();
           }}
-          className="flex items-center rounded-lg overflow-hidden w-full sm:w-[320px] shadow-sm"
-          style={{
-            border: `1.5px solid ${colors.border}`,
-            backgroundColor: colors.white,
-          }}
+          className="flex items-center rounded-xl overflow-hidden w-full sm:w-80 border border-slate-300 bg-white shadow-xs focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent transition-all"
         >
           <input
             type="text"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-            placeholder="Search products, brands, SKUs..."
-            style={{
-              flex: 1,
-              padding: '9px 14px',
-              fontSize: '13px',
-              color: colors.secondary,
-              border: 'none',
-              outline: 'none',
-              backgroundColor: 'transparent',
-            }}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search batteries, inverters, SKU..."
+            className="flex-1 px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 bg-transparent focus:outline-none"
           />
           {search && (
             <button
@@ -94,48 +56,20 @@ export function ProductHeader({
                 setSearch('');
                 onSearchSubmit?.();
               }}
-              aria-label="Clear search"
-              style={{
-                padding: '0 8px',
-                color: colors.textMuted,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
+              aria-label="Clear search query"
+              className="p-1.5 text-slate-400 hover:text-slate-700 cursor-pointer"
             >
-              <svg
-                width="14"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
               </svg>
             </button>
           )}
           <button
             type="submit"
-            aria-label="Search"
-            style={{
-              padding: '10px 14px',
-              backgroundColor: colors.primary,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            aria-label="Submit search"
+            className="px-4 py-2.5 bg-[#CC0000] hover:bg-[#B30000] text-white flex items-center justify-center transition-colors cursor-pointer"
           >
-            <svg
-              width="15"
-              height="15"
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              viewBox="0 0 24 24"
-            >
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
             </svg>

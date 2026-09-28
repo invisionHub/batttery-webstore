@@ -57,6 +57,24 @@ export function ProductsView({
   const [view, setView] = useState<'grid' | 'list'>(DEFAULT_VIEW);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
+  // Sync state if URL query params change (e.g. from header nav or browser back/forward)
+  React.useEffect(() => {
+    const qSearch = searchParams?.get('search') ?? '';
+    const qCategory = searchParams?.get('category');
+    const qBrand = searchParams?.get('brand');
+    const qSort = searchParams?.get('sort') as SortOption | null;
+
+    void Promise.resolve().then(() => {
+      setSearch(qSearch);
+      setFilters((prev) => ({
+        ...prev,
+        categories: qCategory ? [qCategory] : prev.categories,
+        brands: qBrand ? [qBrand] : prev.brands,
+      }));
+      if (qSort) setSort(qSort);
+    });
+  }, [searchParams]);
+
   if (!initialProducts || initialError) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -162,13 +180,13 @@ export function ProductsView({
     router.replace('/products', { scroll: false });
   };
 
-  // Base pool for options
-  const optionPool = allProducts && allProducts.length > 0 ? allProducts : initialProducts;
-  const categoryOptions = generateFilterOptions(optionPool, 'category');
-  const brandOptions = generateFilterOptions(optionPool, 'brand');
+  // Base pool for options & filtering
+  const basePool = allProducts && allProducts.length > 0 ? allProducts : initialProducts;
+  const categoryOptions = generateFilterOptions(basePool, 'category');
+  const brandOptions = generateFilterOptions(basePool, 'brand');
 
   // Filter pipeline
-  const searchedProducts = searchProducts(initialProducts, search);
+  const searchedProducts = searchProducts(basePool, search);
   const filteredProducts = filterProducts(searchedProducts, filters);
   const sortedProducts = sortProducts(filteredProducts, sort);
   const { totalPages, items } = paginateProducts(sortedProducts, page);

@@ -7,235 +7,100 @@ import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
 import { formatPrice } from '@/utils/utils';
 
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
-const colors = {
-  primary: '#CC0000',
-  primaryHover: '#16A34A',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-};
+const FREE_SHIPPING_THRESHOLD = 50000;
 
-// ─────────────────────────────────────────
-// CART ITEM ROW
-// ─────────────────────────────────────────
 const CartItemRow = ({ item }: { item: ReturnType<typeof useCartStore.getState>['items'][0] }) => {
   const { removeProduct, updateQuantity } = useCartStore();
   const [imgErr, setImgErr] = useState(false);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '12px',
-        padding: '14px 0',
-        borderBottom: `1px solid ${colors.border}`,
-      }}
-    >
-      {/* Product Image */}
-      <div
-        style={{
-          width: '64px',
-          height: '64px',
-          flexShrink: 0,
-          borderRadius: '8px',
-          backgroundColor: colors.white,
-          border: `1px solid ${colors.border}`,
-          position: 'relative',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+    <div className="flex gap-3.5 py-4 border-b border-slate-100 items-center">
+      {/* Product Image Thumbnail */}
+      <div className="relative w-16 h-16 shrink-0 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center">
         {item.image && !imgErr ? (
           <Image
             src={item.image}
             alt={item.name}
             fill
             sizes="64px"
-            className="object-contain p-1"
+            className="object-contain p-1.5"
             referrerPolicy="no-referrer"
             onError={() => setImgErr(true)}
           />
         ) : (
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <rect
-              x="3"
-              y="3"
-              width="18"
-              height="18"
-              rx="2"
-              stroke={colors.border}
-              strokeWidth="1.5"
-            />
-            <circle cx="8.5" cy="8.5" r="1.5" stroke={colors.textMuted} strokeWidth="1.5" />
-            <path
-              d="M21 15l-5-5L5 21"
-              stroke={colors.textMuted}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
+          <svg width="22" height="22" fill="none" stroke="#94A3B8" strokeWidth="1.5" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" strokeLinecap="round" />
           </svg>
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <p
-          style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            color: colors.secondary,
-            margin: 0,
-            lineHeight: 1.4,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
+      {/* Info & Quantity */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <Link
+          href={`/products/${item.slug || item.id}`}
+          className="text-xs font-bold text-slate-900 hover:text-[#CC0000] truncate transition-colors"
         >
           {item.name}
-        </p>
+        </Link>
 
         {item.color && (
-          <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>
-            Color: {item.color}
-          </p>
+          <span className="text-[11px] text-slate-500">
+            Specification: {item.color}
+          </span>
         )}
 
-        <p style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary, margin: 0 }}>
-          {formatPrice(item.price)}
-        </p>
-
-        {/* Quantity stepper */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0',
-            marginTop: '4px',
-            width: 'fit-content',
-          }}
-        >
-          <button
-            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-            aria-label="Decrease quantity"
-            style={{
-              width: '28px',
-              height: '28px',
-              border: `1px solid ${colors.border}`,
-              borderRight: 'none',
-              borderRadius: '6px 0 0 6px',
-              backgroundColor: colors.white,
-              color: colors.secondary,
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            −
-          </button>
-          <span
-            style={{
-              width: '32px',
-              height: '28px',
-              border: `1px solid ${colors.border}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: colors.secondary,
-            }}
-          >
-            {item.quantity}
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-sm font-black text-slate-900 tabular-nums">
+            {formatPrice(item.price)}
           </span>
-          <button
-            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-            aria-label="Increase quantity"
-            style={{
-              width: '28px',
-              height: '28px',
-              border: `1px solid ${colors.border}`,
-              borderLeft: 'none',
-              borderRadius: '0 6px 6px 0',
-              backgroundColor: colors.white,
-              color: colors.secondary,
-              fontSize: '14px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            +
-          </button>
+
+          {/* Stepper */}
+          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-2xs">
+            <button
+              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+              className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors text-xs font-bold cursor-pointer"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-xs font-bold text-slate-900 tabular-nums">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+              className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors text-xs font-bold cursor-pointer"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Remove button */}
+      {/* Delete button */}
       <button
         onClick={() => removeProduct(item.id)}
+        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
         aria-label="Remove item"
-        style={{
-          flexShrink: 0,
-          width: '28px',
-          height: '28px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          color: colors.textMuted,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '6px',
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.errorBg;
-          (e.currentTarget as HTMLButtonElement).style.color = colors.error;
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
-          (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted;
-        }}
       >
-        <svg
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
+        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <polyline points="3 6 5 6 21 6" strokeLinecap="round" />
           <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M10 11v6M14 11v6" strokeLinecap="round" />
-          <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
     </div>
   );
 };
 
-// ─────────────────────────────────────────
-// CART DRAWER
-// ─────────────────────────────────────────
-const CartDrawer: React.FC = () => {
+export const CartDrawer: React.FC = () => {
   const { isCartDrawerOpen, closeCartDrawer } = useUIStore();
   const { items, calculateTotals, clearCart } = useCartStore();
   const { subtotal, itemCount, total } = calculateTotals();
 
-  // Close on Escape key
+  // Escape key handler
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeCartDrawer();
@@ -244,7 +109,7 @@ const CartDrawer: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKey);
   }, [isCartDrawerOpen, closeCartDrawer]);
 
-  // Prevent body scroll when open
+  // Lock scroll when drawer open
   useEffect(() => {
     document.body.style.overflow = isCartDrawerOpen ? 'hidden' : '';
     return () => {
@@ -254,189 +119,80 @@ const CartDrawer: React.FC = () => {
 
   if (!isCartDrawerOpen) return null;
 
+  const amountRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const progressPercent = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+
   return (
     <>
       {/* Backdrop */}
       <div
         onClick={closeCartDrawer}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 40,
-          backgroundColor: 'rgba(13,27,42,0.5)',
-          backdropFilter: 'blur(2px)',
-        }}
+        className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs transition-opacity"
       />
 
-      {/* Drawer panel */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          height: '100%',
-          zIndex: 50,
-          width: '100%',
-          maxWidth: '420px',
-          backgroundColor: colors.white,
-          boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
-          display: 'flex',
-          flexDirection: 'column',
-          animation: 'javal-slide-left 0.25s ease',
-        }}
-      >
-        <style>{`
-          @keyframes javal-slide-left {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-          }
-        `}</style>
-
-        {/* ── Header ── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 20px',
-            borderBottom: `1px solid ${colors.border}`,
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke={colors.secondary}
-              strokeWidth="1.8"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-              <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: '16px', fontWeight: 800, color: colors.secondary }}>
-              Your Cart
-            </span>
+      {/* Drawer Panel */}
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-200">
+          <div className="flex items-center gap-2.5">
+            <span className="font-extrabold text-slate-900 text-lg">Your Cart</span>
             {itemCount > 0 && (
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  backgroundColor: colors.primary,
-                  color: colors.white,
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                }}
-              >
+              <span className="bg-[#CC0000] text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </span>
             )}
           </div>
           <button
             onClick={closeCartDrawer}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Close cart"
-            style={{
-              width: '32px',
-              height: '32px',
-              border: `1px solid ${colors.border}`,
-              borderRadius: '8px',
-              backgroundColor: colors.white,
-              color: colors.secondary,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
           >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
             </svg>
           </button>
         </div>
 
-        {/* ── Items list ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px' }}>
-          {items.length === 0 ? (
-            // Empty state
+        {/* Free Shipping Progress Meter */}
+        <div className="bg-slate-50 p-4 border-b border-slate-200 text-xs">
+          {amountRemaining > 0 ? (
+            <p className="text-slate-700 font-medium mb-1.5">
+              Add <span className="font-bold text-[#CC0000] tabular-nums">{formatPrice(amountRemaining)}</span> more to unlock <span className="font-bold text-emerald-700">Free Delivery</span>
+            </p>
+          ) : (
+            <p className="text-emerald-700 font-bold mb-1.5 flex items-center gap-1.5">
+              <span>🎉 Congratulations! Your order qualifies for Free Delivery!</span>
+            </p>
+          )}
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                gap: '16px',
-                textAlign: 'center',
-                padding: '40px 20px',
-              }}
-            >
-              <svg width="56" height="56" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-                  stroke={colors.border}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="3"
-                  y1="6"
-                  x2="21"
-                  y2="6"
-                  stroke={colors.border}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M16 10a4 4 0 01-8 0"
-                  stroke={colors.primary}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <div>
-                <p
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 700,
-                    color: colors.secondary,
-                    margin: '0 0 6px 0',
-                  }}
-                >
-                  Your cart is empty
-                </p>
-                <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
-                  Add some products to get started
-                </p>
+              className={`h-full transition-all duration-300 ${
+                amountRemaining === 0 ? 'bg-emerald-500' : 'bg-[#CC0000]'
+              }`}
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Cart Item List */}
+        <div className="flex-1 overflow-y-auto px-5 divide-y divide-slate-100">
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-16 px-4">
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+                </svg>
               </div>
+              <h3 className="text-base font-bold text-slate-900 mb-1">Your cart is empty</h3>
+              <p className="text-xs text-slate-500 max-w-xs mb-6">
+                Explore our certified batteries, hybrid inverters, and electrical protection systems.
+              </p>
               <button
                 onClick={closeCartDrawer}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: '8px',
-                  backgroundColor: colors.primary,
-                  color: colors.white,
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
+                className="px-6 py-2.5 bg-[#CC0000] text-white text-xs font-bold rounded-lg hover:bg-[#B30000] transition-colors cursor-pointer shadow-xs"
               >
-                Continue Shopping
+                Start Shopping
               </button>
             </div>
           ) : (
@@ -445,119 +201,53 @@ const CartDrawer: React.FC = () => {
                 <CartItemRow key={item.id} item={item} />
               ))}
 
-              {/* Clear cart */}
-              {items.length > 0 && (
+              <div className="py-3 flex justify-between items-center">
                 <button
                   onClick={clearCart}
-                  style={{
-                    marginTop: '12px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: colors.error,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '4px 0',
-                  }}
+                  className="text-xs text-slate-400 hover:text-red-600 transition-colors font-semibold cursor-pointer"
                 >
-                  Remove all items
+                  Clear all items
                 </button>
-              )}
+              </div>
             </>
           )}
         </div>
 
-        {/* ── Footer: Order summary + CTA ── */}
+        {/* Footer Checkout Summary */}
         {items.length > 0 && (
-          <div
-            style={{
-              flexShrink: 0,
-              padding: '16px 20px',
-              borderTop: `1px solid ${colors.border}`,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              backgroundColor: colors.white,
-            }}
-          >
-            {/* Subtotal */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', color: colors.textMuted }}>Subtotal</span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.secondary }}>
-                {formatPrice(subtotal)}
+          <div className="p-5 border-t border-slate-200 bg-white space-y-3">
+            <div className="flex justify-between text-xs text-slate-500">
+              <span>Subtotal</span>
+              <span className="font-semibold text-slate-800 tabular-nums">{formatPrice(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-slate-500">
+              <span>Delivery</span>
+              <span className="font-semibold text-emerald-600">
+                {amountRemaining === 0 ? 'FREE' : 'Calculated at checkout'}
               </span>
             </div>
-
-            {/* Discount */}
-            {/* {discount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '13px', color: colors.textMuted }}>Savings</span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
-                  -{discount}
-                </span>
-              </div>
-            )} */}
-
-            {/* Shipping note */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', color: colors.textMuted }}>Delivery</span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.primary }}>
-                Calculated at checkout
-              </span>
+            <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-100">
+              <span>Total</span>
+              <span className="tabular-nums text-lg text-[#CC0000]">{formatPrice(total)}</span>
             </div>
 
-            <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '10px' }}>
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}
-              >
-                <span style={{ fontSize: '15px', fontWeight: 800, color: colors.secondary }}>
-                  Total
-                </span>
-                <span style={{ fontSize: '15px', fontWeight: 900, color: colors.secondary }}>
-                  {formatPrice(total)}
-                </span>
-              </div>
+            <Link
+              href="/checkOut"
+              onClick={closeCartDrawer}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#CC0000] hover:bg-[#B30000] text-white font-bold text-sm rounded-xl shadow-lg shadow-red-900/20 transition-all active:scale-[0.98]"
+            >
+              <span>Proceed to Checkout</span>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
 
-              {/* Checkout button */}
-              <Link
-                href="/checkOut"
-                onClick={closeCartDrawer}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '100%',
-                  padding: '13px',
-                  borderRadius: '8px',
-                  backgroundColor: colors.primary,
-                  color: colors.white,
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  marginBottom: '8px',
-                }}
-              >
-                Proceed to Checkout →
-              </Link>
-
-              {/* Continue shopping */}
-              <button
-                onClick={closeCartDrawer}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: `1px solid ${colors.border}`,
-                  backgroundColor: colors.white,
-                  color: colors.secondary,
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Continue Shopping
-              </button>
-            </div>
+            <button
+              onClick={closeCartDrawer}
+              className="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              Continue Shopping
+            </button>
           </div>
         )}
       </div>

@@ -8,23 +8,6 @@ import { useUIStore } from '@/store/uiStore';
 import { Product } from '@/database/types';
 import { formatPrice } from '@/utils/utils';
 
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
-const colors = {
-  primary: '#CC0000',
-  primaryHover: '#16A34A',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-  badgeSale: '#EF4444',
-  badgeNew: '#3B82F6',
-  badgeBestSeller: '#F59E0B',
-  badgeHot: '#EF4444',
-};
-
 export function getProductImage(product: Product): string | null {
   if (!product.images) return null;
   if (Array.isArray(product.images)) {
@@ -44,98 +27,50 @@ export function getProductImage(product: Product): string | null {
   return null;
 }
 
-// ─────────────────────────────────────────
-// STAR RATING
-// ─────────────────────────────────────────
-export const StarRating = ({
-  rating,
-  count,
-  showCount = true,
-}: {
-  rating: number;
-  count: number;
-  showCount?: boolean;
-}) => (
-  <div className="flex items-center gap-1">
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill={star <= Math.round(rating) ? colors.badgeBestSeller : 'none'}
-          stroke={colors.badgeBestSeller}
-          strokeWidth="2"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-    {showCount && (
-      <span className="text-xs" style={{ color: colors.textMuted }}>
-        ({count})
-      </span>
-    )}
-  </div>
-);
-
-// ─────────────────────────────────────────
-// PRODUCT BADGE
-// ─────────────────────────────────────────
-export const ProductBadge = ({ badge }: { badge?: string }) => {
-  if (!badge) return null;
-  const badgeColors: Record<string, string> = {
-    sale: colors.badgeSale,
-    new: colors.badgeNew,
-    'best-seller': colors.badgeBestSeller,
-    hot: colors.badgeHot,
-  };
-  return (
-    <span
-      className="px-2 py-0.5 text-[10px] font-bold uppercase rounded text-white"
-      style={{ backgroundColor: badgeColors[badge] || colors.primary }}
-    >
-      {badge}
-    </span>
-  );
-};
-
-// ─────────────────────────────────────────
-// IMAGE PLACEHOLDER
-// ─────────────────────────────────────────
 export const ProductImagePlaceholder = ({ name }: { name: string }) => (
-  <div
-    className="w-full h-full flex flex-col items-center justify-center gap-2 p-2"
-    style={{ backgroundColor: colors.bgLight }}
-  >
-    <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="18" height="18" rx="2" stroke={colors.border} strokeWidth="1.5" />
-      <circle cx="8.5" cy="8.5" r="1.5" stroke={colors.textMuted} strokeWidth="1.5" />
-      <path
-        d="M21 15l-5-5L5 21"
-        stroke={colors.textMuted}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+  <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-400">
+    <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" strokeLinecap="round" />
     </svg>
-    <span className="text-[11px] text-center px-2 line-clamp-2 leading-tight" style={{ color: colors.textMuted }}>
+    <span className="text-[10px] text-center mt-2 line-clamp-2 text-slate-500 font-medium">
       {name}
     </span>
   </div>
 );
 
-// ─────────────────────────────────────────
-// PRODUCT CARD
-// ─────────────────────────────────────────
+export const StarRating = ({ rating, count }: { rating: number; count?: number }) => (
+  <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 text-amber-400">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <svg key={s} width="11" height="11" viewBox="0 0 20 20" fill={s <= Math.round(rating) ? 'currentColor' : 'none'} stroke="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    {count !== undefined && (
+      <span className="text-[11px] text-slate-400 font-mono">({count})</span>
+    )}
+  </div>
+);
+
+export const ProductBadge = ({ badge }: { badge?: string }) => {
+  if (!badge) return null;
+  return (
+    <span className="text-[10px] font-bold uppercase tracking-wider text-[#CC0000]">
+      {badge}
+    </span>
+  );
+};
+
 interface ProductCardProps {
   product: Product;
   view?: 'grid' | 'list';
   className?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', className = '' }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+export const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', className = '' }) => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -158,26 +93,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
   if (view === 'list') {
     return (
       <div
-        className={`flex gap-4 rounded-xl overflow-hidden transition-all duration-200 p-3 items-center ${className}`}
-        style={{
-          backgroundColor: colors.white,
-          border: `1px solid ${colors.border}`,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        }}
+        className={`flex gap-4 rounded-xl border border-slate-200 bg-white p-3.5 items-center hover:border-slate-300 hover:shadow-md transition-all duration-200 ${className}`}
       >
-        {/* Image */}
-        <div
-          className="relative shrink-0 rounded-lg overflow-hidden bg-white"
-          style={{ width: '110px', height: '110px', border: `1px solid ${colors.border}` }}
-        >
+        {/* Thumbnail Image */}
+        <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100">
           <Link href={productHref} className="block w-full h-full relative">
             {imageUrl && !imageError ? (
               <Image
                 src={imageUrl}
                 alt={product.name ?? 'Product'}
                 fill
-                sizes="110px"
-                className="object-contain p-2 hover:scale-105 transition-transform"
+                sizes="120px"
+                className="object-contain p-2 hover:scale-105 transition-transform duration-200"
                 referrerPolicy="no-referrer"
                 onError={() => setImageError(true)}
               />
@@ -188,72 +115,50 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
         </div>
 
         {/* Info */}
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          <span
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: colors.primary }}
-          >
-            {product.category?.replace(/-/g, ' ')}
-          </span>
-          <Link href={productHref} className="hover:underline">
-            <h3
-              className="text-sm font-bold leading-snug line-clamp-2"
-              style={{ color: colors.secondary }}
-            >
+        <div className="flex flex-col gap-1 flex-1 min-w-0">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="font-bold uppercase tracking-wider text-[#CC0000]">
+              {product.category?.replace(/-/g, ' ')}
+            </span>
+            {product.brand && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{product.brand}</span>
+              </>
+            )}
+          </div>
+
+          <Link href={productHref} className="hover:text-[#CC0000] transition-colors">
+            <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">
               {product.name}
             </h3>
           </Link>
-          {product.brand && (
-            <span className="text-xs" style={{ color: colors.textMuted }}>
-              Brand: {product.brand}
-            </span>
-          )}
-          <div className="flex items-center gap-2 mt-auto">
-            <span className="text-base font-black" style={{ color: colors.secondary }}>
+
+          <div className="flex items-center gap-3 mt-auto pt-1">
+            <span className="text-base font-extrabold text-slate-900 tabular-nums">
               {formatPrice(product.price!)}
             </span>
             <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{
-                backgroundColor: product.stockStatus === 'Out of Stock' ? '#FEE2E2' : '#DCFCE7',
-                color: product.stockStatus === 'Out of Stock' ? '#DC2626' : '#16A34A',
-              }}
+              className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                product.stockStatus === 'Out of Stock'
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-emerald-50 text-emerald-700'
+              }`}
             >
               {product.stockStatus ?? 'In Stock'}
             </span>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-2 shrink-0 items-end">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsWishlisted(!isWishlisted);
-            }}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
-            style={{ border: `1px solid ${colors.border}` }}
-            aria-label="Wishlist"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill={isWishlisted ? colors.badgeSale : 'none'}
-              stroke={isWishlisted ? colors.badgeSale : colors.textMuted}
-              strokeWidth="2"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-            </svg>
-          </button>
+        {/* Action Button */}
+        <div className="shrink-0 flex items-center">
           <button
             onClick={handleAddToCart}
-            className="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer"
-            style={{
-              backgroundColor: addedToCart ? colors.primaryHover : colors.primary,
-              color: colors.white,
-            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer ${
+              addedToCart
+                ? 'bg-emerald-600 text-white'
+                : 'bg-[#CC0000] hover:bg-[#B30000] text-white active:scale-95'
+            }`}
           >
             {addedToCart ? '✓ Added' : 'Add to Cart'}
           </button>
@@ -265,38 +170,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
   // ── GRID VIEW ──
   return (
     <div
-      className={`group relative flex flex-col rounded-xl overflow-hidden transition-all duration-300 ${className}`}
-      style={{
-        backgroundColor: colors.white,
-        border: `1px solid ${colors.border}`,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-      }}
+      className={`group relative flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 ${className}`}
     >
-      {/* Image Container */}
-      <div className="relative overflow-hidden bg-white" style={{ height: '190px' }}>
-        {/* Wishlist Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsWishlisted(!isWishlisted);
-          }}
-          className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer"
-          style={{ backgroundColor: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
-          aria-label="Wishlist"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill={isWishlisted ? colors.badgeSale : 'none'}
-            stroke={isWishlisted ? colors.badgeSale : colors.textMuted}
-            strokeWidth="2"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-          </svg>
-        </button>
-
+      {/* Product Image Stage */}
+      <div className="relative h-48 w-full bg-slate-50 overflow-hidden border-b border-slate-100 flex items-center justify-center">
         <Link href={productHref} className="block w-full h-full relative">
           {imageUrl && !imageError ? (
             <Image
@@ -304,7 +181,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
               alt={product.name ?? 'Product'}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+              className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"
               onError={() => setImageError(true)}
             />
@@ -312,54 +189,69 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid', class
             <ProductImagePlaceholder name={product.name!} />
           )}
         </Link>
+
+        {/* Stock tag */}
+        <div className="absolute top-2.5 left-2.5">
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs ${
+              product.stockStatus === 'Out of Stock'
+                ? 'bg-white text-red-600 border border-red-200'
+                : 'bg-white text-emerald-700 border border-emerald-200'
+            }`}
+          >
+            {product.stockStatus ?? 'In Stock'}
+          </span>
+        </div>
       </div>
 
-      {/* Info Container */}
-      <div className="flex flex-col gap-2 p-3.5 flex-1 border-t" style={{ borderColor: colors.border }}>
-        <span
-          className="text-[11px] font-bold uppercase tracking-wider line-clamp-1"
-          style={{ color: colors.primary }}
-        >
-          {product.category?.replace(/-/g, ' ')}
-        </span>
-
-        <Link href={productHref} className="hover:underline">
-          <h3
-            className="text-sm font-semibold leading-snug line-clamp-2 min-h-[38px]"
-            style={{ color: colors.secondary }}
-          >
-            {product.name}
-          </h3>
-        </Link>
-
-        {/* Price & Stock */}
-        <div className="flex items-baseline justify-between gap-2 mt-auto pt-1">
-          <span className="text-base font-black" style={{ color: colors.secondary }}>
-            {formatPrice(product.price!)}
-          </span>
-          {product.brand && (
-            <span className="text-[11px] text-gray-500 font-medium truncate max-w-[90px]">
-              {product.brand}
+      {/* Info & Purchase Area */}
+      <div className="flex flex-col flex-1 p-4 gap-2 justify-between">
+        <div>
+          {/* Metadata unboxed */}
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+            <span className="text-[#CC0000] font-bold uppercase tracking-wider line-clamp-1">
+              {product.category?.replace(/-/g, ' ')}
             </span>
-          )}
+            {product.brand && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="truncate">{product.brand}</span>
+              </>
+            )}
+          </div>
+
+          <Link href={productHref} className="block hover:text-[#CC0000] transition-colors mt-1">
+            <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px]">
+              {product.name}
+            </h3>
+          </Link>
         </div>
 
-        {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          className="w-full py-2.5 rounded-lg text-xs font-bold transition-all duration-200 mt-1 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
-          style={{
-            backgroundColor: addedToCart ? colors.primaryHover : colors.primary,
-            color: colors.white,
-          }}
-        >
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
-            <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-            <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
-        </button>
+        {/* Price & Add to Cart */}
+        <div className="pt-2 border-t border-slate-100 mt-auto">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-base font-black text-slate-900 tabular-nums">
+              {formatPrice(product.price!)}
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium">Verified Spec</span>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+              addedToCart
+                ? 'bg-emerald-600 text-white'
+                : 'bg-[#CC0000] hover:bg-[#B30000] text-white active:scale-[0.98]'
+            }`}
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+              <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>{addedToCart ? '✓ Added to Cart' : 'Add to Cart'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );

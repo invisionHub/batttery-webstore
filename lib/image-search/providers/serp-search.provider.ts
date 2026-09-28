@@ -13,6 +13,47 @@ export class SerpSearchProvider implements ImageSearchProvider {
       throw new SearchProviderError(this.name, 'SERP API Key is not configured.');
     }
 
+    // Attempt SerpApi (serpapi.com) first if key is 64 hex characters or if Serper fails
+    try {
+      const serpApiUrl = new URL('https://serpapi.com/search.json');
+      serpApiUrl.searchParams.set('engine', 'google_images');
+      serpApiUrl.searchParams.set('q', query);
+      serpApiUrl.searchParams.set('api_key', this.apiKey);
+      serpApiUrl.searchParams.set('num', String(options?.limit ?? 10));
+
+      const response = await fetch(serpApiUrl.toString(), {
+        signal: AbortSignal.timeout(12000),
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          images_results?: Array<{
+            original?: string;
+            link?: string;
+            title?: string;
+            source?: string;
+            original_width?: number;
+            original_height?: number;
+          }>;
+        };
+
+        if (data.images_results && data.images_results.length > 0) {
+          return data.images_results.map((img) => ({
+            imageUrl: img.original || '',
+            sourceUrl: img.link || '',
+            title: img.title,
+            source: img.source,
+            width: img.original_width,
+            height: img.original_height,
+          })).filter((c) => Boolean(c.imageUrl));
+        }
+        return [];
+      }
+    } catch {
+      // Fall through to serper.dev if serpapi errors
+    }
+
+    // Fallback: google.serper.dev
     try {
       const response = await fetch('https://google.serper.dev/images', {
         method: 'POST',

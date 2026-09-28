@@ -59,7 +59,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             marginBottom: '32px',
           }}
         >
-          {/* <SpecificationsTable product={product} /> */}
+          <SpecificationsTable product={product} />
         </div>
 
         <RelatedProductsSection products={relatedProducts} />

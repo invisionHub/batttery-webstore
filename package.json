@@ -20,6 +20,7 @@
     "test:product-images": "tsx --require tsconfig-paths/register scripts/test-product-image-repository.ts",
     "test:image-search": "tsx --require tsconfig-paths/register scripts/test-image-search-catalog.ts",
     "enrich:images": "tsx --require dotenv/config --require tsconfig-paths/register scripts/enrich-product-images.ts",
+    "enrich:all": "tsx --require dotenv/config scripts/populate-all-product-images.ts",
     "import:csv-images": "tsx --require dotenv/config --require tsconfig-paths/register scripts/push-csv-images-to-db.ts",
     "seed:products": "tsx --require dotenv/config --require tsconfig-paths/register scripts/seed-products.ts",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",

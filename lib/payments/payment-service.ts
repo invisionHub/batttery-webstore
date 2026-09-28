@@ -6,6 +6,8 @@ import { orderTable } from '@/database/schema/order.schema';
 import { paymentTable } from '@/database/schema/payment.schema';
 import { paymentRepository } from '@/database/repository/payment/payment.repository';
 
+import { orderRepository } from '@/database/repository/order/order.repository';
+import { sendOrderPaymentEmails } from '@/lib/email';
 import { createPaystackAdapter } from './paystack-adapter';
 import type { InitializePaymentInput, PaymentProvider, VerifyPaymentResult } from './types';
 
@@ -103,6 +105,8 @@ export class PaymentService {
       mappedStatus === 'PAID' ? 'paid' : mappedStatus === 'FAILED' ? 'failed' : 'pending';
 
     if (mappedStatus !== 'PENDING') {
+      const wasAlreadyPaid = payment.status === 'PAID';
+
       await db.transaction(async (tx: any) => {
         await tx
           .update(paymentTable)
@@ -117,6 +121,29 @@ export class PaymentService {
           })
           .where(eq(orderTable.id, payment.orderId));
       });
+
+      // Send confirmation emails to buyer and store owner if payment succeeded and hasn't already fired
+      if (mappedStatus === 'PAID' && !wasAlreadyPaid) {
+        try {
+          const orders = await orderRepository.findById(payment.orderId);
+          const currentOrder = orders[0];
+          if (currentOrder && currentOrder.customerInfo) {
+            const customerInfo = currentOrder.customerInfo as any;
+            sendOrderPaymentEmails({
+              orderId: currentOrder.id,
+              orderReference: currentOrder.reference,
+              amount: currentOrder.amount,
+              customerInfo,
+              paymentReference: reference,
+              paidAt: new Date(),
+            }).catch((err) => {
+              console.error('[PaymentService] Error dispatching order payment emails:', err);
+            });
+          }
+        } catch (emailErr) {
+          console.error('[PaymentService] Failed to load order for email dispatch:', emailErr);
+        }
+      }
     }
 
     return {

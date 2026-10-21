@@ -79,7 +79,7 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
       }
 
       if (result.status === 'pending' || result.payment?.status === 'pending') {
-        const pendingUrl = new URL('/checkOut/success', window.location.origin);
+        const pendingUrl = new URL('/checkout/success', window.location.origin);
         pendingUrl.searchParams.set('reference', result.paymentReference ?? '');
 
         if (result.orderId) {
@@ -91,7 +91,7 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
         return;
       }
 
-      const successUrl = new URL('/checkOut/success', window.location.origin);
+      const successUrl = new URL('/checkout/success', window.location.origin);
       successUrl.searchParams.set('reference', result.paymentReference ?? '');
 
       if (result.orderId) {

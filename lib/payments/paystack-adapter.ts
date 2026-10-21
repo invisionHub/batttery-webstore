@@ -15,7 +15,7 @@ export class PaystackAdapter implements PaymentProvider {
 
   async initialize(input: InitializePaymentInput): Promise<InitializePaymentResult> {
     if (!this.secretKey || process.env.PAYMENT_PROVIDER === 'mock') {
-      const callback = input.callbackUrl ?? `${this.appUrl}/checkOut/success`;
+      const callback = input.callbackUrl ?? `${this.appUrl}/checkout/success`;
       const url = new URL(callback);
       url.searchParams.set('reference', input.reference);
       url.searchParams.set('trxref', input.reference);
@@ -33,7 +33,7 @@ export class PaystackAdapter implements PaymentProvider {
       email: input.email,
       amount: Math.round(Number(input.amount) * 100),
       reference: input.reference,
-      callback_url: input.callbackUrl ?? `${this.appUrl}/checkOut/success`,
+      callback_url: input.callbackUrl ?? `${this.appUrl}/checkout/success`,
       metadata: {
         ...input.metadata,
         order_reference: input.reference,

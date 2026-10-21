@@ -51,7 +51,7 @@ export async function createOrderAction(input: CreateOrderInput) {
       const headerList = await headers();
       const host = headerList.get('x-forwarded-host') || headerList.get('host');
       const proto = headerList.get('x-forwarded-proto') || 'https';
-      if (host && !host.includes('localhost')) {
+      if (host) {
         origin = `${proto}://${host}`;
       }
     } catch {
@@ -59,9 +59,11 @@ export async function createOrderAction(input: CreateOrderInput) {
     }
   }
 
-  if (!origin || origin.includes('localhost')) {
+  if (!origin) {
     origin = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   }
+
+  origin = origin.replace(/\/+$/, '');
 
   const paymentReference = `PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const paymentService = createPaymentService();
@@ -73,7 +75,7 @@ export async function createOrderAction(input: CreateOrderInput) {
     email: customerInfo.email,
     amount: total,
     reference: paymentReference,
-    callbackUrl: `${origin}/checkOut/success`,
+    callbackUrl: `${origin}/checkout/success`,
     metadata: {
       orderId: createdOrder.id,
       orderReference: createdOrder.reference,

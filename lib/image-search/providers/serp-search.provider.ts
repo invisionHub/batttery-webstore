@@ -13,19 +13,26 @@ export class SerpSearchProvider implements ImageSearchProvider {
       throw new SearchProviderError(this.name, 'SERP API Key is not configured.');
     }
 
-    // Attempt SerpApi (serpapi.com) first if key is 64 hex characters or if Serper fails
-    try {
-      const serpApiUrl = new URL('https://serpapi.com/search.json');
-      serpApiUrl.searchParams.set('engine', 'google_images');
-      serpApiUrl.searchParams.set('q', query);
-      serpApiUrl.searchParams.set('api_key', this.apiKey);
-      serpApiUrl.searchParams.set('num', String(options?.limit ?? 10));
+    const isSerpApiKey = this.apiKey.length === 64 || Boolean(process.env.SERP_API_KEY);
 
-      const response = await fetch(serpApiUrl.toString(), {
-        signal: AbortSignal.timeout(12000),
-      });
+    // 1. If key is SerpApi (serpapi.com)
+    if (isSerpApiKey) {
+      try {
+        const serpApiUrl = new URL('https://serpapi.com/search.json');
+        serpApiUrl.searchParams.set('engine', 'google_images');
+        serpApiUrl.searchParams.set('q', query);
+        serpApiUrl.searchParams.set('api_key', this.apiKey);
+        serpApiUrl.searchParams.set('num', String(options?.limit ?? 5));
 
-      if (response.ok) {
+        const response = await fetch(serpApiUrl.toString(), {
+          signal: AbortSignal.timeout(15000),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`SerpApi HTTP ${response.status}: ${errText}`);
+        }
+
         const data = (await response.json()) as {
           images_results?: Array<{
             original?: string;
@@ -35,25 +42,38 @@ export class SerpSearchProvider implements ImageSearchProvider {
             original_width?: number;
             original_height?: number;
           }>;
+          error?: string;
         };
 
-        if (data.images_results && data.images_results.length > 0) {
-          return data.images_results.map((img) => ({
-            imageUrl: img.original || '',
-            sourceUrl: img.link || '',
-            title: img.title,
-            source: img.source,
-            width: img.original_width,
-            height: img.original_height,
-          })).filter((c) => Boolean(c.imageUrl));
+        if (data.error && !data.images_results) {
+          console.warn(`[SerpSearch] SerpApi note for query "${query}": ${data.error}`);
+          return [];
         }
+
+        if (data.images_results && data.images_results.length > 0) {
+          return data.images_results
+            .map((img) => ({
+              imageUrl: img.original || '',
+              sourceUrl: img.link || '',
+              title: img.title,
+              source: img.source,
+              width: img.original_width,
+              height: img.original_height,
+            }))
+            .filter((c) => Boolean(c.imageUrl));
+        }
+
         return [];
+      } catch (err: unknown) {
+        throw new SearchProviderError(
+          this.name,
+          err instanceof Error ? err.message : 'SerpApi search failure',
+          err
+        );
       }
-    } catch {
-      // Fall through to serper.dev if serpapi errors
     }
 
-    // Fallback: google.serper.dev
+    // 2. Otherwise google.serper.dev
     try {
       const response = await fetch('https://google.serper.dev/images', {
         method: 'POST',
@@ -63,13 +83,13 @@ export class SerpSearchProvider implements ImageSearchProvider {
         },
         body: JSON.stringify({
           q: query,
-          num: options?.limit ?? 10,
+          num: options?.limit ?? 5,
         }),
         signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        throw new Error(`Serper HTTP ${response.status}: ${await response.text()}`);
       }
 
       const data = (await response.json()) as {

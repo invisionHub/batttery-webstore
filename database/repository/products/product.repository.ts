@@ -45,9 +45,37 @@ export const productRepository: ProductRepository = {
   seedProduct: async (products: NewProduct[]) => {
     if (process.env.DATABASE_URL) {
       try {
-        await Promise.all(
-          products.map((product) => db.insert(productTable).values(product).returning())
-        );
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const batchSize = 100;
+        for (let i = 0; i < products.length; i += batchSize) {
+          const chunk = products.slice(i, i + batchSize).map((p: Partial<NewProduct>) => {
+            const item: Record<string, unknown> = {
+              sku: p.sku ?? null,
+              slug: p.slug ?? null,
+              name: p.name ?? null,
+              brand: p.brand ?? null,
+              category: p.category ?? null,
+              subcategory: p.subcategory ?? null,
+              price: p.price != null ? String(p.price) : null,
+              minPrice: p.minPrice != null ? String(p.minPrice) : null,
+              maxPrice: p.maxPrice != null ? String(p.maxPrice) : null,
+              pricePoints: p.pricePoints != null ? String(p.pricePoints) : null,
+              shortDescription: p.shortDescription ?? null,
+              stockStatus: p.stockStatus ?? null,
+              images: Array.isArray(p.images)
+                ? JSON.stringify(p.images)
+                : typeof p.images === 'string'
+                  ? p.images
+                  : '[]',
+            };
+            if (p.id && uuidRegex.test(p.id)) {
+              item.id = p.id;
+            }
+            return item;
+          });
+
+          await db.insert(productTable).values(chunk);
+        }
       } catch (err) {
         console.warn('[AI Studio] DB seed failed, falling back to memory store:', err);
       }

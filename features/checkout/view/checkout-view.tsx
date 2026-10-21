@@ -58,6 +58,7 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
     try {
       const result = await createOrderAction({
         ...values,
+        callbackOrigin: typeof window !== 'undefined' ? window.location.origin : undefined,
         items: items.map((item) => ({
           id: item.id,
           quantity: item.quantity,

@@ -25,7 +25,8 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const cartItemCount = useCartStore((state) => state.getItemCount());
+  const items = useCartStore((state) => state.items);
+  const cartItemCount = (items || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
   const { openCartDrawer } = useUIStore();
 
   useEffect(() => {

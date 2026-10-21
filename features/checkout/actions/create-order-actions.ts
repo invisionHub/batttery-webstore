@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { orderRepository } from '@/database/repository/order/order.repository';
 import { createPaymentService } from '@/lib/payments';
 import { createOrderInputSchema, type CreateOrderInput } from '@/lib/zod/checkoutformSchema';
@@ -12,7 +13,7 @@ export async function createOrderAction(input: CreateOrderInput) {
     throw new Error(firstError?.message ?? 'Invalid order payload.');
   }
 
-  const { items, ...customerInfo } = parsedInput.data;
+  const { items, callbackOrigin, ...customerInfo } = parsedInput.data;
 
   const { subtotal, deliveryFee, vatAmount, total } = await orderRepository.calculateOrderTotals(
     items,
@@ -43,6 +44,25 @@ export async function createOrderAction(input: CreateOrderInput) {
     throw new Error('Order creation failed. No order was returned from the database.');
   }
 
+  // Determine dynamic origin: prioritize client-passed origin, next/headers, or env vars
+  let origin = callbackOrigin;
+  if (!origin) {
+    try {
+      const headerList = await headers();
+      const host = headerList.get('x-forwarded-host') || headerList.get('host');
+      const proto = headerList.get('x-forwarded-proto') || 'https';
+      if (host && !host.includes('localhost')) {
+        origin = `${proto}://${host}`;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!origin || origin.includes('localhost')) {
+    origin = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  }
+
   const paymentReference = `PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const paymentService = createPaymentService();
 
@@ -53,7 +73,7 @@ export async function createOrderAction(input: CreateOrderInput) {
     email: customerInfo.email,
     amount: total,
     reference: paymentReference,
-    callbackUrl: `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/checkOut/success`,
+    callbackUrl: `${origin}/checkOut/success`,
     metadata: {
       orderId: createdOrder.id,
       orderReference: createdOrder.reference,

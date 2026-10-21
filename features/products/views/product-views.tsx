@@ -61,15 +61,23 @@ export function ProductsView({
   React.useEffect(() => {
     const qSearch = searchParams?.get('search') ?? '';
     const qCategory = searchParams?.get('category');
+    const qCategories = searchParams?.get('categories');
+    const qSubcategories = searchParams?.get('subcategories') || searchParams?.get('subcategory');
+    const qSeries = searchParams?.get('series');
     const qBrand = searchParams?.get('brand');
+    const qBrands = searchParams?.get('brands');
     const qSort = searchParams?.get('sort') as SortOption | null;
+    const qInStock = searchParams?.get('inStock') === 'true';
 
     void Promise.resolve().then(() => {
       setSearch(qSearch);
       setFilters((prev) => ({
         ...prev,
-        categories: qCategory ? [qCategory] : prev.categories,
-        brands: qBrand ? [qBrand] : prev.brands,
+        categories: qCategories ? qCategories.split(',') : qCategory ? [qCategory] : prev.categories,
+        subcategories: qSubcategories ? qSubcategories.split(',') : prev.subcategories,
+        series: qSeries ? qSeries.split(',') : prev.series,
+        brands: qBrands ? qBrands.split(',') : qBrand ? [qBrand] : prev.brands,
+        inStockOnly: qInStock || prev.inStockOnly,
       }));
       if (qSort) setSort(qSort);
     });
@@ -86,47 +94,45 @@ export function ProductsView({
   // URL update helper
   const syncUrlParams = (newSearch: string, newFilters: FilterState, newSort: string) => {
     startTransition(() => {
-      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      const params = new URLSearchParams();
       if (newSearch.trim()) {
         params.set('search', newSearch.trim());
-      } else {
-        params.delete('search');
       }
 
       if (newFilters.categories.length === 1) {
         params.set('category', newFilters.categories[0]);
       } else if (newFilters.categories.length > 1) {
         params.set('categories', newFilters.categories.join(','));
-      } else {
-        params.delete('category');
-        params.delete('categories');
+      }
+
+      if (newFilters.subcategories && newFilters.subcategories.length > 0) {
+        params.set('subcategories', newFilters.subcategories.join(','));
+      }
+
+      if (newFilters.series && newFilters.series.length > 0) {
+        params.set('series', newFilters.series.join(','));
       }
 
       if (newFilters.brands.length === 1) {
         params.set('brand', newFilters.brands[0]);
       } else if (newFilters.brands.length > 1) {
         params.set('brands', newFilters.brands.join(','));
-      } else {
-        params.delete('brand');
-        params.delete('brands');
       }
 
       if (newFilters.priceMin > 0) {
         params.set('minPrice', String(newFilters.priceMin));
-      } else {
-        params.delete('minPrice');
       }
 
-      if (newFilters.priceMax < 500000) {
+      if (newFilters.priceMax < 1000000) {
         params.set('maxPrice', String(newFilters.priceMax));
-      } else {
-        params.delete('maxPrice');
       }
 
-      if (newSort && newSort !== 'featured') {
+      if (newFilters.inStockOnly) {
+        params.set('inStock', 'true');
+      }
+
+      if (newSort && newSort !== 'popular') {
         params.set('sort', newSort);
-      } else {
-        params.delete('sort');
       }
 
       const queryString = params.toString();
@@ -166,11 +172,13 @@ export function ProductsView({
 
   const handleReset = () => {
     setSearch('');
-    const resetFilters = {
+    const resetFilters: FilterState = {
       categories: [],
+      subcategories: [],
+      series: [],
       brands: [],
       priceMin: 0,
-      priceMax: 500000,
+      priceMax: 1000000,
       rating: null,
       inStockOnly: false,
     };
@@ -183,6 +191,8 @@ export function ProductsView({
   // Base pool for options & filtering
   const basePool = allProducts && allProducts.length > 0 ? allProducts : initialProducts;
   const categoryOptions = generateFilterOptions(basePool, 'category');
+  const subcategoryOptions = generateFilterOptions(basePool, 'subcategory');
+  const seriesOptions = generateFilterOptions(basePool, 'series');
   const brandOptions = generateFilterOptions(basePool, 'brand');
 
   // Filter pipeline
@@ -215,8 +225,10 @@ export function ProductsView({
           SiderBar={
             <FilterSidebar
               filters={filters}
-              brands={brandOptions}
               categories={categoryOptions}
+              subcategories={subcategoryOptions}
+              series={seriesOptions}
+              brands={brandOptions}
               onChange={handleFiltersChange}
             />
           }
@@ -249,7 +261,7 @@ export function ProductsView({
               <span className="font-extrabold text-gray-900 text-base">Filter Catalog</span>
               <button
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="p-1 rounded-md text-gray-500 hover:text-gray-900"
+                className="p-1 rounded-md text-gray-500 hover:text-gray-900 cursor-pointer"
                 aria-label="Close filters"
               >
                 ✕
@@ -257,15 +269,17 @@ export function ProductsView({
             </div>
             <FilterSidebar
               filters={filters}
-              brands={brandOptions}
               categories={categoryOptions}
+              subcategories={subcategoryOptions}
+              series={seriesOptions}
+              brands={brandOptions}
               onChange={(updated) => {
                 handleFiltersChange(updated);
               }}
             />
             <button
               onClick={() => setIsMobileFiltersOpen(false)}
-              className="mt-4 w-full py-3 bg-[#CC0000] text-white font-bold rounded-lg text-sm shadow-md"
+              className="mt-4 w-full py-3 bg-[#CC0000] text-white font-bold rounded-lg text-sm shadow-md cursor-pointer"
             >
               Show {filteredProducts.length} Results
             </button>

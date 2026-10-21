@@ -245,6 +245,17 @@ export class ProductImageEnricher {
 
     // 7. Task 25: Save Database Record & Transaction/Consistency Rollback Handling (Task 32)
     try {
+      if (options.forceOverwrite) {
+        try {
+          const existing = await this.repo.findPrimaryByProductId(product.id);
+          if (existing) {
+            await this.repo.delete(existing.id);
+          }
+        } catch {
+          // Ignore
+        }
+      }
+
       const savedRecord = await this.repo.create({
         productId: product.id,
         cloudinaryPublicId: uploadedPublicId,
@@ -257,6 +268,20 @@ export class ProductImageEnricher {
         sortOrder: 0,
         isPrimary: true,
       });
+
+      if (process.env.DATABASE_URL) {
+        try {
+          const { db } = await import('@/database/client');
+          const { productTable } = await import('@/database/schema/product.schema');
+          const { eq } = await import('drizzle-orm');
+          await db
+            .update(productTable)
+            .set({ images: JSON.stringify([secureUrl]) })
+            .where(eq(productTable.id, product.id));
+        } catch (updateErr) {
+          console.warn('[Enricher] Failed to update product.images column:', updateErr);
+        }
+      }
 
       return {
         productId: product.id,

@@ -51,13 +51,18 @@ export const useCartStore = create<CartState>()(
       // ── ADD PRODUCT ──
       // If product already exists in cart, increase its quantity instead of duplicating
       addProduct: (product, quantity = 1, color) => {
+        if (!product) return;
+        const productId = product.id || product.slug || product.sku || `p-${Date.now()}`;
+        const addQty = Math.max(1, Number(quantity) || 1);
+
         set((state) => {
-          const existing = state.items.find((item) => item.id === product.id);
+          const currentItems = Array.isArray(state.items) ? state.items : [];
+          const existing = currentItems.find((item) => item.id === productId);
 
           if (existing) {
             return {
-              items: state.items.map((item) =>
-                item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+              items: currentItems.map((item) =>
+                item.id === productId ? { ...item, quantity: item.quantity + addQty } : item
               ),
             };
           }
@@ -77,24 +82,33 @@ export const useCartStore = create<CartState>()(
             }
           }
 
+          let numericPrice = 0;
+          if (typeof product.price === 'number') {
+            numericPrice = isNaN(product.price) ? 0 : product.price;
+          } else if (product.price) {
+            const cleaned = String(product.price).replace(/[^0-9.-]+/g, '');
+            const parsed = parseFloat(cleaned);
+            numericPrice = isNaN(parsed) ? 0 : parsed;
+          }
+
           const newItem: CartItem = {
-            id: product.id,
-            slug: product.slug || product.id,
-            name: product.name || 'Product',
-            price: Number(product.price || 0),
+            id: productId,
+            slug: product.slug || product.sku || productId,
+            name: product.name || 'Legrand Electrical Product',
+            price: numericPrice,
             image,
-            quantity,
+            quantity: addQty,
             color,
           };
 
-          return { items: [...state.items, newItem] };
+          return { items: [...currentItems, newItem] };
         });
       },
 
       // ── REMOVE PRODUCT ──
       removeProduct: (id) => {
         set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
+          items: (state.items || []).filter((item) => item.id !== id),
         }));
       },
 
@@ -107,7 +121,7 @@ export const useCartStore = create<CartState>()(
         }
 
         set((state) => ({
-          items: state.items.map((item) => (item.id === id ? { ...item, quantity } : item)),
+          items: (state.items || []).map((item) => (item.id === id ? { ...item, quantity } : item)),
         }));
       },
 
@@ -116,30 +130,34 @@ export const useCartStore = create<CartState>()(
 
       // ── CALCULATE TOTALS ──
       calculateTotals: () => {
-        const items = get().items;
+        const items = get().items || [];
 
-        const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const subtotal = items.reduce((sum, item) => {
+          const itemPrice = Number(item.price) || 0;
+          const itemQty = Number(item.quantity) || 0;
+          return sum + itemPrice * itemQty;
+        }, 0);
 
         const discount = items.reduce((sum, item) => {
-          if (item.originalPrice) {
-            return sum + (item.originalPrice - item.price) * item.quantity;
+          if (item.originalPrice && item.originalPrice > item.price) {
+            return sum + (item.originalPrice - item.price) * (item.quantity || 1);
           }
           return sum;
         }, 0);
 
-        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        const itemCount = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
         return {
-          subtotal,
-          discount,
-          itemCount,
-          total: subtotal, // shipping/tax added at checkout step later
+          subtotal: Math.max(0, subtotal),
+          discount: Math.max(0, discount),
+          itemCount: Math.max(0, itemCount),
+          total: Math.max(0, subtotal),
         };
       },
 
       // ── HELPERS ──
       getItemCount: () => {
-        return get().items.reduce((sum, item) => sum + item.quantity, 0);
+        return (get().items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
       },
 
       isInCart: (id) => {

@@ -31,7 +31,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     return (
       <div
         className={`grid gap-4 ${
-          view === 'grid' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'
+          view === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
         } ${className}`}
       >
         {Array.from({ length: 8 }).map((_, i) => (
@@ -77,7 +77,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div
       className={`${
         view === 'grid'
-          ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4'
+          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5'
           : 'flex flex-col gap-3'
       } ${className}`}
     >

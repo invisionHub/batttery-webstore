@@ -20,14 +20,12 @@ async function main() {
     return;
   }
 
-  const result = await productRepository.seedProduct(
+  await productRepository.seedProduct(
     importResult.validProducts as unknown as NewProduct[]
   );
 
-  // console.log({
-  //   ...result,
-  //   summary: importResult.summary,
-  // });
+  console.log(`Successfully seeded ${importResult.validProducts.length} products to database.`);
+  process.exit(0);
 }
 
 main().catch((error) => {

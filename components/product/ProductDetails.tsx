@@ -23,8 +23,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, classNa
   const handleAddToCart = () => {
     addProduct(product, quantity);
     setIsAdded(true);
-    openCartDrawer();
-    setTimeout(() => setIsAdded(false), 2000);
+    // Explicitly keep cart drawer closed on Add to Cart as requested
+    setTimeout(() => setIsAdded(false), 2800);
   };
 
   const handleBuyNow = () => {
@@ -166,6 +166,18 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, classNa
         >
           Buy It Now — Fast Checkout
         </button>
+
+        {isAdded && (
+          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs animate-in fade-in duration-200">
+            <span className="font-bold">✓ Added {quantity} {quantity === 1 ? 'unit' : 'units'} to your cart</span>
+            <button
+              onClick={() => openCartDrawer()}
+              className="font-bold text-emerald-900 hover:text-emerald-950 underline cursor-pointer"
+            >
+              View Cart →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Trust & Delivery Guarantees */}

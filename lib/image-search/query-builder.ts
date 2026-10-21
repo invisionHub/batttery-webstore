@@ -28,14 +28,30 @@ function cleanToken(token: string): string {
 
 /**
  * Builds an optimal, high-signal image search query for an e-commerce product.
- * Prioritizes brand, canonical product name, model/SKU, and category while stripping duplicate tokens and noise.
+ * Extracts catalog/part numbers (e.g. Legrand Cat. No. 0104 22 -> "Legrand 010422")
+ * or forms a concise, high-relevance search query.
  */
 export function buildImageSearchQuery(product: Partial<Product>): string {
-  const brand = (product.brand ?? '').trim();
+  const brand = (product.brand ?? 'Legrand').trim();
   const name = (product.name ?? '').trim();
   const sku = (product.sku ?? '').trim();
-  const category = (product.category ?? '').trim();
   const subcategory = (product.subcategory ?? '').trim();
+
+  // 1. Check for Cat. No. or catalog number (e.g. Cat. No. 0104 22 or 5733 71)
+  const catNoMatch = name.match(/Cat\.?\s*No\.?\s*([0-9\sA-Za-z]+)\)?/i);
+  if (catNoMatch && catNoMatch[1]) {
+    const cleanNo = catNoMatch[1].replace(/[^0-9A-Za-z]/g, '').trim();
+    if (cleanNo.length >= 4) {
+      return `${brand} ${cleanNo}`;
+    }
+  }
+
+  // 2. Otherwise build clean concise query from brand, clean name and subcategory
+  const cleanName = name
+    .replace(/\(.*?\)/g, '')
+    .replace(/[-–—/]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   const collectedTokens: string[] = [];
   const seenLowerTokens = new Set<string>();
@@ -54,32 +70,16 @@ export function buildImageSearchQuery(product: Partial<Product>): string {
     }
   };
 
-  // 1. Add Brand first for highest priority
-  if (brand && brand.toLowerCase() !== 'unknown' && brand.toLowerCase() !== 'generic') {
+  if (brand && brand.toLowerCase() !== 'unknown') {
     addTokens(brand);
   }
 
-  // 2. Add Product Name
-  if (name) {
-    addTokens(name);
-  }
+  addTokens(cleanName);
 
-  // 3. Add SKU / Model intact if distinct and alphanumeric
-  if (sku && sku.length >= 3) {
-    const cleanedSku = cleanToken(sku);
-    if (cleanedSku && !seenLowerTokens.has(cleanedSku.toLowerCase())) {
-      seenLowerTokens.add(cleanedSku.toLowerCase());
-      collectedTokens.push(cleanedSku);
-    }
-  }
-
-  // 4. Add Category & Subcategory if not already captured
-  if (category && !seenLowerTokens.has(category.toLowerCase())) {
-    addTokens(category);
-  }
   if (subcategory && !seenLowerTokens.has(subcategory.toLowerCase())) {
     addTokens(subcategory);
   }
 
-  return collectedTokens.join(' ');
+  // Limit query to at most 6-7 tokens for optimal image search indexing
+  return collectedTokens.slice(0, 7).join(' ');
 }

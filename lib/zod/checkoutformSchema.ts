@@ -26,6 +26,7 @@ const cartItemSchema = z.object({
 
 export const createOrderInputSchema = checkoutSchema.extend({
   items: z.array(cartItemSchema).min(1, 'Your cart is empty.'),
+  callbackOrigin: z.string().optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderInputSchema>;

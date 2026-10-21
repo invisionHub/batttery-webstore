@@ -79,8 +79,8 @@ async function importCsvToDatabase() {
   const validEntries = rows.filter((r) => r.candidateImage && r.candidateImage.startsWith('http'));
   console.log(`Found ${validEntries.length} valid images to import.\n`);
 
+  const skippedCount = rows.length - validEntries.length;
   let successCount = 0;
-  let skippedCount = 0;
   let failedCount = 0;
 
   for (let i = 0; i < validEntries.length; i++) {

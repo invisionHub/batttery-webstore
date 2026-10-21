@@ -111,23 +111,26 @@ async function runBatchEnrichment() {
 
     console.log(`[Batch ${batchNum}/${totalBatches}] Processing ${batch.length} products...`);
 
-    const results: EnrichmentResult[] = await Promise.all(
-      batch.map(async (prod) => {
-        try {
-          return await defaultProductImageEnricher.enrichProductImage(prod, {
-            forceOverwrite: options.forceOverwrite,
-            uploadLowConfidenceForReview: options.uploadLowConfidenceForReview,
-          });
-        } catch (err: unknown) {
-          return {
-            productId: prod.id,
-            sku: prod.sku,
-            status: 'FAILED',
-            error: err instanceof Error ? err.message : String(err),
-          };
-        }
-      })
-    );
+    const results: EnrichmentResult[] = [];
+    for (const prod of batch) {
+      try {
+        const res = await defaultProductImageEnricher.enrichProductImage(prod, {
+          forceOverwrite: options.forceOverwrite,
+          uploadLowConfidenceForReview: options.uploadLowConfidenceForReview,
+        });
+        results.push(res);
+      } catch (err: unknown) {
+        results.push({
+          productId: prod.id,
+          sku: prod.sku,
+          status: 'FAILED',
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+      if (options.delayMs > 0) {
+        await sleep(options.delayMs);
+      }
+    }
 
     for (let j = 0; j < results.length; j++) {
       const res = results[j];

@@ -2,21 +2,10 @@
 
 import React, { useState } from 'react';
 
-// ============================================
-// BRAND COLORS — change these to update theme
-// ============================================
-const colors = {
-  primary: '#CC0000',
-  primaryHover: '#16A34A',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-};
-
 export interface FilterState {
   categories: string[];
+  subcategories: string[];
+  series: string[];
   brands: string[];
   priceMin: number;
   priceMax: number;
@@ -24,182 +13,156 @@ export interface FilterState {
   inStockOnly: boolean;
 }
 
-interface FilterOption {
+export interface FilterOption {
   id: string;
   name: string;
   value: string;
   count: number;
 }
 
-interface FilterSidebarProps {
+export interface FilterSidebarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
   categories?: FilterOption[];
+  subcategories?: FilterOption[];
+  series?: FilterOption[];
   brands?: FilterOption[];
   className?: string;
 }
 
-// ─────────────────────────────────────────
-// Collapsible filter section
-// ─────────────────────────────────────────
-const FilterSection = ({
-  title,
-  children,
-  defaultOpen = true,
-}: {
+const FilterSection: React.FC<{
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
-}) => {
+  badge?: number;
+}> = ({ title, children, defaultOpen = true, badge }) => {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div
-      style={{
-        borderBottom: `1px solid ${colors.border}`,
-        paddingBottom: '16px',
-        marginBottom: '16px',
-      }}
-    >
+    <div className="border-b border-slate-200/80 pb-4 mb-4 last:border-b-0 last:mb-0 last:pb-0">
       <button
         onClick={() => setOpen(!open)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '0 0 12px 0',
-        }}
+        className="flex items-center justify-between w-full text-left py-1 text-xs font-bold uppercase tracking-wider text-slate-800 hover:text-[#CC0000] transition-colors cursor-pointer"
       >
-        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary }}>{title}</span>
+        <span className="flex items-center gap-2">
+          {title}
+          {badge !== undefined && badge > 0 && (
+            <span className="bg-[#CC0000] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {badge}
+            </span>
+          )}
+        </span>
         <svg
           width="14"
           height="14"
           fill="none"
-          stroke={colors.textMuted}
+          stroke="currentColor"
           strokeWidth="2.5"
           viewBox="0 0 24 24"
-          style={{
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s',
-          }}
+          className={`transform transition-transform duration-200 text-slate-400 ${
+            open ? 'rotate-180' : 'rotate-0'
+          }`}
         >
           <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {open && <div>{children}</div>}
+      {open && <div className="mt-3">{children}</div>}
     </div>
   );
 };
 
-// ─────────────────────────────────────────
-// Custom checkbox
-// ─────────────────────────────────────────
-const CheckItem = ({
-  label,
-  checked,
-  count,
-  onChange,
-}: {
+const CheckItem: React.FC<{
   label: string;
   checked: boolean;
   count?: number;
   onChange: () => void;
-}) => (
-  <label
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      cursor: 'pointer',
-      marginBottom: '10px',
-    }}
-  >
+}> = ({ label, checked, count, onChange }) => (
+  <label className="flex items-center gap-2.5 cursor-pointer py-1 group select-none">
     <div
       onClick={onChange}
-      style={{
-        width: '16px',
-        height: '16px',
-        borderRadius: '4px',
-        border: `2px solid ${checked ? colors.primary : colors.border}`,
-        backgroundColor: checked ? colors.primary : colors.white,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        cursor: 'pointer',
-        transition: 'all 0.15s',
-      }}
+      className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+        checked
+          ? 'bg-[#CC0000] border-[#CC0000]'
+          : 'bg-white border-slate-300 group-hover:border-slate-400'
+      }`}
     >
       {checked && (
-        <svg width="9" height="9" fill="none" stroke={colors.white} viewBox="0 0 24 24">
-          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
+        <svg width="10" height="10" fill="none" stroke="#FFFFFF" strokeWidth="3" viewBox="0 0 24 24">
+          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
     </div>
     <span
       onClick={onChange}
-      style={{
-        fontSize: '13px',
-        color: checked ? colors.secondary : colors.textMuted,
-        flex: 1,
-        cursor: 'pointer',
-      }}
+      className={`text-xs flex-1 truncate transition-colors ${
+        checked ? 'font-bold text-slate-900' : 'text-slate-600 group-hover:text-slate-900'
+      }`}
     >
       {label}
     </span>
     {count !== undefined && (
-      <span style={{ fontSize: '11px', color: colors.textMuted }}>({count})</span>
+      <span className="text-[11px] font-medium text-slate-400 tabular-nums">({count})</span>
     )}
   </label>
 );
 
-// ─────────────────────────────────────────
-// MAIN FILTER SIDEBAR
-// ─────────────────────────────────────────
-const FilterSidebar: React.FC<FilterSidebarProps> = ({
+export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   filters,
   onChange,
   categories = [],
+  subcategories = [],
+  series = [],
   className = '',
 }) => {
-  const [priceMin, setPriceMin] = useState(String(filters.priceMin));
-  const [priceMax, setPriceMax] = useState(String(filters.priceMax));
+  const [priceMin, setPriceMin] = useState(String(filters.priceMin || 0));
+  const [priceMax, setPriceMax] = useState(String(filters.priceMax || 1000000));
 
-  const toggleCategory = (slug: string) => {
-    const updated = filters.categories.includes(slug)
-      ? filters.categories.filter((c) => c !== slug)
-      : [...filters.categories, slug];
+  const toggleCategory = (val: string) => {
+    const list = filters.categories || [];
+    const updated = list.includes(val) ? list.filter((c) => c !== val) : [...list, val];
     onChange({ ...filters, categories: updated });
   };
 
+  const toggleSubcategory = (val: string) => {
+    const list = filters.subcategories || [];
+    const updated = list.includes(val) ? list.filter((s) => s !== val) : [...list, val];
+    onChange({ ...filters, subcategories: updated });
+  };
+
+  const toggleSeries = (val: string) => {
+    const list = filters.series || [];
+    const updated = list.includes(val) ? list.filter((s) => s !== val) : [...list, val];
+    onChange({ ...filters, series: updated });
+  };
+
   const applyPrice = () => {
+    const min = Math.max(0, parseInt(priceMin, 10) || 0);
+    const max = Math.max(min, parseInt(priceMax, 10) || 1000000);
     onChange({
       ...filters,
-      priceMin: Number(priceMin) || 0,
-      priceMax: Number(priceMax) || 500000,
+      priceMin: min,
+      priceMax: max,
     });
   };
 
-  const hasActive =
-    filters.categories.length > 0 ||
-    filters.brands.length > 0 ||
-    filters.rating !== null ||
-    filters.inStockOnly ||
-    filters.priceMin > 0 ||
-    filters.priceMax < 500000;
+  const activeFiltersCount =
+    (filters.categories?.length || 0) +
+    (filters.subcategories?.length || 0) +
+    (filters.series?.length || 0) +
+    (filters.brands?.length || 0) +
+    (filters.inStockOnly ? 1 : 0) +
+    (filters.priceMin > 0 || (filters.priceMax && filters.priceMax < 1000000) ? 1 : 0);
 
-  const reset = () => {
+  const resetAll = () => {
     setPriceMin('0');
-    setPriceMax('500000');
+    setPriceMax('1000000');
     onChange({
       categories: [],
+      subcategories: [],
+      series: [],
       brands: [],
       priceMin: 0,
-      priceMax: 500000,
+      priceMax: 1000000,
       rating: null,
       inStockOnly: false,
     });
@@ -207,247 +170,157 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   return (
     <aside
-      className={className}
-      style={{
-        backgroundColor: colors.white,
-        border: `1px solid ${colors.border}`,
-        borderRadius: '12px',
-        padding: '16px',
-      }}
+      className={`bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs ${className}`}
     >
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '16px',
-          paddingBottom: '12px',
-          borderBottom: `1px solid ${colors.border}`,
-        }}
-      >
-        <span style={{ fontSize: '14px', fontWeight: 800, color: colors.secondary }}>Filters</span>
-        {hasActive && (
+      <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-extrabold text-slate-900 tracking-tight">Catalog Filters</span>
+          {activeFiltersCount > 0 && (
+            <span className="bg-[#CC0000] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+              {activeFiltersCount}
+            </span>
+          )}
+        </div>
+        {activeFiltersCount > 0 && (
           <button
-            onClick={reset}
-            style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              color: colors.primary,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            onClick={resetAll}
+            className="text-xs font-bold text-[#CC0000] hover:text-[#990000] transition-colors cursor-pointer"
           >
             Clear All
           </button>
         )}
       </div>
 
-      {/* ── CATEGORY FILTER ── */}
-      <FilterSection title="Category">
-        {categories.map((cat) => (
-          <CheckItem
-            key={cat.id}
-            label={cat.name}
-            checked={filters.categories.includes(cat.value)}
-            count={cat.count}
-            onChange={() => toggleCategory(cat.value)}
-          />
-        ))}
-      </FilterSection>
+      {/* ── 1. CATEGORIES ── */}
+      {categories.length > 0 && (
+        <FilterSection title="Product Category" defaultOpen={true} badge={filters.categories?.length}>
+          <div className="space-y-0.5 max-h-56 overflow-y-auto pr-1">
+            {categories.map((cat) => (
+              <CheckItem
+                key={cat.id}
+                label={cat.name}
+                checked={(filters.categories || []).includes(cat.value)}
+                count={cat.count}
+                onChange={() => toggleCategory(cat.value)}
+              />
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
-      {/* ── PRICE RANGE FILTER ── */}
-      <FilterSection title="Price Range">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* Price inputs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontSize: '11px',
-                  color: colors.textMuted,
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Min (₦)
-              </label>
+      {/* ── 2. SERIES & COLLECTIONS ── */}
+      {series.length > 0 && (
+        <FilterSection title="Series & Range" defaultOpen={true} badge={filters.series?.length}>
+          <div className="space-y-0.5 max-h-52 overflow-y-auto pr-1">
+            {series.map((s) => (
+              <CheckItem
+                key={s.id}
+                label={s.name}
+                checked={(filters.series || []).includes(s.value)}
+                count={s.count}
+                onChange={() => toggleSeries(s.value)}
+              />
+            ))}
+          </div>
+        </FilterSection>
+      )}
+
+      {/* ── 3. SUBCATEGORIES ── */}
+      {subcategories.length > 0 && (
+        <FilterSection title="Subcategory" defaultOpen={false} badge={filters.subcategories?.length}>
+          <div className="space-y-0.5 max-h-60 overflow-y-auto pr-1">
+            {subcategories.map((sub) => (
+              <CheckItem
+                key={sub.id}
+                label={sub.name}
+                checked={(filters.subcategories || []).includes(sub.value)}
+                count={sub.count}
+                onChange={() => toggleSubcategory(sub.value)}
+              />
+            ))}
+          </div>
+        </FilterSection>
+      )}
+
+      {/* ── 4. PRICE RANGE ── */}
+      <FilterSection title="Price Range (₦)" defaultOpen={false}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-semibold text-slate-400 block mb-1">MIN</label>
               <input
                 type="number"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 onBlur={applyPrice}
                 placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '6px',
-                  color: colors.secondary,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                className="w-full text-xs font-semibold px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#CC0000] tabular-nums"
               />
             </div>
-            <span style={{ color: colors.textMuted, fontSize: '12px', marginTop: '16px' }}>—</span>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontSize: '11px',
-                  color: colors.textMuted,
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Max (₦)
-              </label>
+            <div>
+              <label className="text-[10px] font-semibold text-slate-400 block mb-1">MAX</label>
               <input
                 type="number"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 onBlur={applyPrice}
-                placeholder="500000"
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '6px',
-                  color: colors.secondary,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                placeholder="1000000"
+                className="w-full text-xs font-semibold px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#CC0000] tabular-nums"
               />
             </div>
           </div>
 
-          {/* Quick price ranges */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+          {/* Quick presets */}
+          <div className="flex flex-col gap-1.5 pt-1">
             {[
               { label: 'Under ₦10,000', min: 0, max: 10000 },
               { label: '₦10,000 — ₦50,000', min: 10000, max: 50000 },
-              { label: '₦50,000 — ₦100,000', min: 50000, max: 100000 },
-              { label: 'Above ₦100,000', min: 100000, max: 500000 },
-            ].map((range) => (
-              <button
-                key={range.label}
-                onClick={() => {
-                  setPriceMin(String(range.min));
-                  setPriceMax(String(range.max));
-                  onChange({ ...filters, priceMin: range.min, priceMax: range.max });
-                }}
-                style={{
-                  textAlign: 'left',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  color:
-                    filters.priceMin === range.min && filters.priceMax === range.max
-                      ? colors.primary
-                      : colors.textMuted,
-                  fontWeight:
-                    filters.priceMin === range.min && filters.priceMax === range.max ? 600 : 400,
-                  padding: '2px 0',
-                }}
-              >
-                {range.label}
-              </button>
-            ))}
+              { label: '₦50,000 — ₦150,000', min: 50000, max: 150000 },
+              { label: '₦150,000 — ₦500,000', min: 150000, max: 500000 },
+              { label: 'Above ₦500,000', min: 500000, max: 1000000 },
+            ].map((range) => {
+              const active = filters.priceMin === range.min && filters.priceMax === range.max;
+              return (
+                <button
+                  key={range.label}
+                  onClick={() => {
+                    setPriceMin(String(range.min));
+                    setPriceMax(String(range.max));
+                    onChange({ ...filters, priceMin: range.min, priceMax: range.max });
+                  }}
+                  className={`text-left text-xs py-1 px-2 rounded-md transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-red-50 text-[#CC0000] font-bold'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </FilterSection>
 
-      {/* ── RATING FILTER ── */}
-      <FilterSection title="Rating">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {[5, 4, 3, 2].map((stars) => (
-            <button
-              key={stars}
-              onClick={() =>
-                onChange({ ...filters, rating: filters.rating === stars ? null : stars })
-              }
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <svg
-                    key={s}
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill={s <= stars ? '#F59E0B' : 'none'}
-                    stroke="#F59E0B"
-                    strokeWidth="2"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
-              <span style={{ fontSize: '12px', color: colors.textMuted }}>& above</span>
-              {filters.rating === stars && (
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: colors.primary,
-                  }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      </FilterSection>
-
-      {/* ── AVAILABILITY ── */}
+      {/* ── 5. AVAILABILITY ── */}
       <FilterSection title="Availability" defaultOpen={false}>
         <CheckItem
           label="In Stock Only"
-          checked={filters.inStockOnly}
+          checked={Boolean(filters.inStockOnly)}
           onChange={() => onChange({ ...filters, inStockOnly: !filters.inStockOnly })}
         />
       </FilterSection>
 
-      {/* Apply button */}
+      {/* Apply Button */}
       <button
         onClick={applyPrice}
-        style={{
-          width: '100%',
-          padding: '10px',
-          borderRadius: '8px',
-          backgroundColor: colors.primary,
-          color: colors.white,
-          fontSize: '13px',
-          fontWeight: 700,
-          border: 'none',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s',
-          marginTop: '4px',
-        }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.primaryHover)
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.primary)
-        }
+        className="w-full mt-2 py-2.5 bg-slate-900 hover:bg-[#CC0000] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
       >
-        Apply Filters
+        Apply Price Range
       </button>
     </aside>
   );
 };
 
 export default FilterSidebar;
-// export type { FilterState };

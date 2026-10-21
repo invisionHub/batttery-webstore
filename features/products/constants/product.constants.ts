@@ -3,12 +3,14 @@ import { SortOption } from "../types";
 export const ITEMS_PER_PAGE = 12;
 
 export const DEFAULT_FILTERS = {
-    categories: [],
-    brands: [],
-    priceMin: 0,
-    priceMax: 500000,
-    rating: null,
-    inStockOnly: false,
+  categories: [] as string[],
+  subcategories: [] as string[],
+  series: [] as string[],
+  brands: [] as string[],
+  priceMin: 0,
+  priceMax: 1000000,
+  rating: null,
+  inStockOnly: false,
 };
 
 export const DEFAULT_SORT = 'popular' as SortOption;

@@ -1,13 +1,6 @@
 'use client';
 
-const colors = {
-  primary: '#CC0000',
-  secondary: '#0D1B2A',
-  white: '#FFFFFF',
-  border: '#E5E7EB',
-  bgLight: '#F9FAFB',
-  textMuted: '#6B7280',
-};
+import React from 'react';
 
 interface CatalogProps {
   categoryOptions: {
@@ -22,55 +15,40 @@ interface CatalogProps {
 
 export function Catalog({ categoryOptions, selected, onSelectCategory }: CatalogProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '8px',
-        overflowX: 'auto',
-        paddingBottom: '4px',
-        marginBottom: '20px',
-        scrollbarWidth: 'thin',
-      }}
-    >
+    <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar scroll-smooth">
       <button
         onClick={() => onSelectCategory?.(null)}
-        style={{
-          flexShrink: 0,
-          padding: '6px 16px',
-          borderRadius: '999px',
-          fontSize: '12px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          border: 'none',
-          backgroundColor: selected.length === 0 ? colors.primary : colors.white,
-          color: selected.length === 0 ? colors.white : colors.textMuted,
-          outline: selected.length === 0 ? 'none' : `1px solid ${colors.border}`,
-          transition: 'all 0.15s ease',
-        }}
+        className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+          selected.length === 0
+            ? 'bg-[#CC0000] text-white shadow-red-900/20'
+            : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900'
+        }`}
       >
         All Products
       </button>
+
       {categoryOptions.map((cat) => {
         const isSelected = selected.includes(cat.value);
         return (
           <button
             key={cat.id}
             onClick={() => onSelectCategory?.(cat.value)}
-            style={{
-              flexShrink: 0,
-              padding: '6px 16px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              backgroundColor: isSelected ? colors.primary : colors.white,
-              color: isSelected ? colors.white : colors.textMuted,
-              outline: isSelected ? 'none' : `1px solid ${colors.border}`,
-              transition: 'all 0.15s ease',
-            }}
+            className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 ${
+              isSelected
+                ? 'bg-[#CC0000] text-white shadow-red-900/20'
+                : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900'
+            }`}
           >
-            {cat.name} {cat.count > 0 ? `(${cat.count})` : ''}
+            <span>{cat.name}</span>
+            {cat.count > 0 && (
+              <span
+                className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full tabular-nums ${
+                  isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {cat.count}
+              </span>
+            )}
           </button>
         );
       })}

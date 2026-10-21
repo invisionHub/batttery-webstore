@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
-import { useUIStore } from '@/store/uiStore';
 import { Product } from '@/database/types';
 import { formatPrice } from '@/utils/utils';
 
@@ -75,7 +74,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid'
   const [imageError, setImageError] = useState(false);
 
   const addProduct = useCartStore((state) => state.addProduct);
-  const openCartDrawer = useUIStore((state) => state.openCartDrawer);
+  const inCartQty = useCartStore((state) => {
+    const item = (state.items || []).find((i) => i.id === product.id);
+    return item?.quantity ?? 0;
+  });
 
   const imageUrl = getProductImage(product);
   const productHref = `/products/${product.id}`;
@@ -85,25 +87,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid'
     e.stopPropagation();
     addProduct(product, 1);
     setAddedToCart(true);
-    openCartDrawer();
-    setTimeout(() => setAddedToCart(false), 2000);
+    // Explicitly keep cart drawer closed on Add to Cart as requested
+    setTimeout(() => setAddedToCart(false), 2200);
   };
 
   // ── LIST VIEW ──
   if (view === 'list') {
     return (
       <div
-        className={`flex gap-4 rounded-xl border border-slate-200 bg-white p-3.5 items-center hover:border-slate-300 hover:shadow-md transition-all duration-200 ${className}`}
+        className={`flex flex-col sm:flex-row gap-4 rounded-2xl border border-slate-200 bg-white p-4 items-start sm:items-center hover:border-slate-300 hover:shadow-md transition-all duration-200 ${className}`}
       >
         {/* Thumbnail Image */}
-        <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100">
+        <div className="relative w-full sm:w-32 h-44 sm:h-32 shrink-0 rounded-xl overflow-hidden bg-slate-50/80 border border-slate-100 flex items-center justify-center">
           <Link href={productHref} className="block w-full h-full relative">
             {imageUrl && !imageError ? (
               <Image
                 src={imageUrl}
                 alt={product.name ?? 'Product'}
                 fill
-                sizes="120px"
+                sizes="(max-width: 640px) 100vw, 130px"
                 className="object-contain p-2 hover:scale-105 transition-transform duration-200"
                 referrerPolicy="no-referrer"
                 onError={() => setImageError(true)}
@@ -115,73 +117,100 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid'
         </div>
 
         {/* Info */}
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0 w-full">
+          <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
             <span className="font-bold uppercase tracking-wider text-[#CC0000]">
               {product.category?.replace(/-/g, ' ')}
             </span>
+            {product.subcategory && (
+              <>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="text-slate-600 font-medium">{product.subcategory}</span>
+              </>
+            )}
             {product.brand && (
               <>
-                <span aria-hidden="true">·</span>
-                <span>{product.brand}</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="text-slate-700 font-semibold">{product.brand}</span>
               </>
             )}
           </div>
 
           <Link href={productHref} className="hover:text-[#CC0000] transition-colors">
-            <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2">
               {product.name}
             </h3>
           </Link>
 
-          <div className="flex items-center gap-3 mt-auto pt-1">
-            <span className="text-base font-extrabold text-slate-900 tabular-nums">
-              {formatPrice(product.price!)}
+          <div className="flex items-center gap-3 mt-1 pt-1">
+            <span className="text-lg font-black text-slate-900 tabular-nums">
+              {formatPrice(product.price)}
             </span>
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
                 product.stockStatus === 'Out of Stock'
-                  ? 'bg-red-50 text-red-700'
-                  : 'bg-emerald-50 text-emerald-700'
+                  ? 'bg-red-50 text-red-700 border border-red-200'
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
               }`}
             >
               {product.stockStatus ?? 'In Stock'}
             </span>
+            {inCartQty > 0 && (
+              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                {inCartQty} in cart
+              </span>
+            )}
           </div>
         </div>
 
         {/* Action Button */}
-        <div className="shrink-0 flex items-center">
+        <div className="w-full sm:w-auto shrink-0 flex items-center pt-2 sm:pt-0">
           <button
             onClick={handleAddToCart}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer ${
+            className={`w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 ${
               addedToCart
-                ? 'bg-emerald-600 text-white'
-                : 'bg-[#CC0000] hover:bg-[#B30000] text-white active:scale-95'
+                ? 'bg-emerald-600 text-white shadow-emerald-900/20'
+                : 'bg-slate-900 hover:bg-[#CC0000] text-white active:scale-95'
             }`}
           >
-            {addedToCart ? '✓ Added' : 'Add to Cart'}
+            {addedToCart ? (
+              <>
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Added ✓</span>
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+                  <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Add to Cart</span>
+              </>
+            )}
           </button>
         </div>
       </div>
     );
   }
 
-  // ── GRID VIEW ──
+  // ── GRID VIEW (Responsive: 1-item per row on mobile, 2-4 on larger screens) ──
   return (
     <div
-      className={`group relative flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 ${className}`}
+      className={`group relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 ${className}`}
     >
       {/* Product Image Stage */}
-      <div className="relative h-48 w-full bg-slate-50 overflow-hidden border-b border-slate-100 flex items-center justify-center">
+      <div className="relative h-56 sm:h-52 w-full bg-slate-50/80 overflow-hidden border-b border-slate-100 flex items-center justify-center p-4">
         <Link href={productHref} className="block w-full h-full relative">
           {imageUrl && !imageError ? (
             <Image
               src={imageUrl}
               alt={product.name ?? 'Product'}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"
               onError={() => setImageError(true)}
             />
@@ -191,65 +220,86 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, view = 'grid'
         </Link>
 
         {/* Stock tag */}
-        <div className="absolute top-2.5 left-2.5">
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
           <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs ${
+            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-2xs backdrop-blur-xs ${
               product.stockStatus === 'Out of Stock'
-                ? 'bg-white text-red-600 border border-red-200'
-                : 'bg-white text-emerald-700 border border-emerald-200'
+                ? 'bg-white/95 text-red-600 border border-red-200'
+                : 'bg-white/95 text-emerald-700 border border-emerald-200'
             }`}
           >
             {product.stockStatus ?? 'In Stock'}
           </span>
+          {inCartQty > 0 && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/90 text-white shadow-2xs">
+              {inCartQty} in cart
+            </span>
+          )}
         </div>
       </div>
 
       {/* Info & Purchase Area */}
-      <div className="flex flex-col flex-1 p-4 gap-2 justify-between">
+      <div className="flex flex-col flex-1 p-4 sm:p-5 gap-3 justify-between">
         <div>
           {/* Metadata unboxed */}
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
             <span className="text-[#CC0000] font-bold uppercase tracking-wider line-clamp-1">
               {product.category?.replace(/-/g, ' ')}
             </span>
-            {product.brand && (
+            {product.subcategory && (
               <>
-                <span aria-hidden="true">·</span>
-                <span className="truncate">{product.brand}</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="truncate text-slate-600">{product.subcategory}</span>
               </>
             )}
           </div>
 
-          <Link href={productHref} className="block hover:text-[#CC0000] transition-colors mt-1">
-            <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 min-h-[38px]">
+          <Link href={productHref} className="block hover:text-[#CC0000] transition-colors mt-1.5">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2 min-h-[40px]">
               {product.name}
             </h3>
           </Link>
         </div>
 
         {/* Price & Add to Cart */}
-        <div className="pt-2 border-t border-slate-100 mt-auto">
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-base font-black text-slate-900 tabular-nums">
-              {formatPrice(product.price!)}
+        <div className="pt-3 border-t border-slate-100 mt-auto">
+          <div className="flex items-baseline justify-between mb-3">
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-400 font-medium">Price</span>
+              <span className="text-lg sm:text-base font-black text-slate-900 tabular-nums">
+                {formatPrice(product.price)}
+              </span>
+            </div>
+            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+              {product.sku ? `Cat. ${product.sku}` : 'Verified Spec'}
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">Verified Spec</span>
           </div>
 
           <button
             onClick={handleAddToCart}
-            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+            className={`w-full min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer ${
               addedToCart
-                ? 'bg-emerald-600 text-white'
-                : 'bg-[#CC0000] hover:bg-[#B30000] text-white active:scale-[0.98]'
+                ? 'bg-emerald-600 text-white shadow-emerald-900/20'
+                : 'bg-[#CC0000] hover:bg-[#B30000] active:scale-[0.98] text-white shadow-red-900/20'
             }`}
           >
-            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-              <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>{addedToCart ? '✓ Added to Cart' : 'Add to Cart'}</span>
+            {addedToCart ? (
+              <>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Added to Cart ✓</span>
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+                  <path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>{inCartQty > 0 ? `Add Another (${inCartQty} in cart)` : 'Add to Cart'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

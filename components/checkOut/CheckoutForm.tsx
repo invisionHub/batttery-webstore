@@ -108,13 +108,12 @@ interface ICheckOutProps {
   formState: FormState<CheckoutFormData>;
   register: UseFormRegister<CheckoutFormData>;
   deliveryMethod: 'standard' | 'express' | 'pickup';
-  paymentMethod: 'card' | 'bank_transfer' | 'ussd';
+  paymentMethod?: string;
 }
 
 const CheckoutForm: React.FC<ICheckOutProps> = ({
   deliveryMethod,
   formState,
-  paymentMethod,
   register,
 }) => {
   const { errors } = formState;
@@ -380,89 +379,6 @@ const CheckoutForm: React.FC<ICheckOutProps> = ({
               >
                 {opt.price}
               </span>
-            </label>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Payment Method ── */}
-      <section
-        style={{
-          backgroundColor: colors.white,
-          borderRadius: '12px',
-          border: `1px solid ${colors.border}`,
-          padding: '20px',
-        }}
-      >
-        <SectionTitle>Payment Method</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {[
-            {
-              value: 'card',
-              label: 'Pay with Card',
-              desc: 'Visa, Mastercard, Verve via Paystack',
-            },
-            {
-              value: 'bank_transfer',
-              label: 'Pay with Bank Transfer',
-              desc: 'Generate a Paystack transfer account and complete payment securely',
-            },
-            {
-              value: 'ussd',
-              label: 'Pay with USSD',
-              desc: 'Use your bank USSD prompt through Paystack',
-            },
-          ].map((opt) => (
-            <label
-              key={opt.value}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 14px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                border: `1.5px solid ${paymentMethod === opt.value ? colors.primary : colors.border}`,
-                backgroundColor: paymentMethod === opt.value ? '#F0FDF4' : colors.white,
-              }}
-            >
-              <input
-                {...register('paymentMethod')}
-                type="radio"
-                value={opt.value}
-                style={{ display: 'none' }}
-              />
-              <div
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  border: `2px solid ${paymentMethod === opt.value ? colors.primary : colors.border}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {paymentMethod === opt.value && (
-                  <div
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: colors.primary,
-                    }}
-                  />
-                )}
-              </div>
-              <div>
-                <p
-                  style={{ fontSize: '13px', fontWeight: 700, color: colors.secondary, margin: 0 }}
-                >
-                  {opt.label}
-                </p>
-                <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0 }}>{opt.desc}</p>
-              </div>
             </label>
           ))}
         </div>

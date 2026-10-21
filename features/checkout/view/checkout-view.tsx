@@ -39,7 +39,6 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
   });
 
   const deliveryMethod = methods.watch('deliveryMethod');
-  const paymentMethod = methods.watch('paymentMethod');
 
   const total = deliveryMethod ? delivery[deliveryMethod] + subtotal : subtotal;
 
@@ -116,7 +115,6 @@ export default function CheckoutView({ createOrderAction }: CheckoutViewProps) {
       <FormErrorFormat errors={methods.formState.errors} />
       <CheckOutForm
         deliveryMethod={deliveryMethod}
-        paymentMethod={paymentMethod}
         isLoading={isLoading}
         methods={methods}
         onSubmit={onSubmit}

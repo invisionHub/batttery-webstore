@@ -6,14 +6,14 @@ import { FormProvider, UseFormReturn } from 'react-hook-form';
 
 interface ICheckOutFormProps {
   deliveryMethod: 'standard' | 'express' | 'pickup';
-  paymentMethod: 'card' | 'bank_transfer' | 'ussd';
+  paymentMethod?: 'card' | 'bank_transfer' | 'ussd';
   methods: UseFormReturn<CheckoutFormData>;
   isLoading: boolean;
   pricing: { total: number; subTotal: number; deliveryPrice: number };
   onSubmit: () => void;
 }
 export const CheckOutForm = ({ ...checkOutFormProps }: ICheckOutFormProps) => {
-  const { isLoading, methods, onSubmit, paymentMethod, pricing } = checkOutFormProps;
+  const { isLoading, methods, onSubmit, pricing } = checkOutFormProps;
   const deliveryMethod = methods.watch('deliveryMethod');
 
   return (
@@ -30,13 +30,11 @@ export const CheckOutForm = ({ ...checkOutFormProps }: ICheckOutFormProps) => {
             deliveryMethod={deliveryMethod}
             formState={methods.formState}
             register={methods.register}
-            paymentMethod={paymentMethod}
           />
           <PaymentButton
             isLoading={isLoading}
             isDisabled={isLoading}
             total={pricing.total}
-            paymentMethod={paymentMethod}
             onSubmit={onSubmit}
           />
         </div>

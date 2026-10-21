@@ -15,7 +15,7 @@ interface PaymentButtonProps {
   isLoading: boolean;
   isDisabled: boolean;
   total: number;
-  paymentMethod: string;
+  paymentMethod?: string;
   onSubmit: () => void;
 }
 
@@ -25,16 +25,9 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
   isLoading,
   isDisabled,
   total,
-  paymentMethod,
   onSubmit,
 }) => {
-  const labels: Record<string, string> = {
-    card: 'Pay with Card',
-    bank_transfer: 'Pay with Bank Transfer',
-    ussd: 'Pay with USSD',
-  };
-
-  const label = labels[paymentMethod] ?? 'Continue to Payment';
+  const label = `Proceed to Payment · ${formatPrice(total)}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

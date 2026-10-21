@@ -72,7 +72,7 @@ export const checkoutSchema = z.object({
   city: z.string().trim().min(2, 'City is required.').max(80, 'City name is too long.'),
   state: z.enum(nigerianStates, { message: 'Please select your state.' }),
   deliveryMethod: z.enum(deliveryMethodOptions, { message: 'Please choose a delivery method.' }),
-  paymentMethod: z.enum(paymentMethodOptions, { message: 'Please choose a payment method.' }),
+  paymentMethod: z.enum(paymentMethodOptions).default('card'),
   notes: z.string().trim().max(500, 'Notes must be 500 characters or less.').default(''),
 });
 
